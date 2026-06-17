@@ -273,6 +273,15 @@ input[type="color"] { width: 46px; height: 38px; padding: 2px; border-radius: 8p
 }
 .file-list li .ok { color: var(--ok); }
 
+/* ===== 빈도 분석 막대 ===== */
+.freq-bar {
+  height: 12px;
+  background: var(--brand);
+  border-radius: 6px;
+  min-width: 2px;
+}
+#freq-table td:last-child { width: 40%; }
+
 /* ===== Home button ===== */
 .home-row { text-align: center; margin-top: 22px; }
 .home-btn { padding: 11px 28px; font-weight: 700; }

@@ -20,6 +20,7 @@
         <button class="nav-btn" data-tab="counter">글자수</button>
         <button class="nav-btn" data-tab="autocomplete">자동완성</button>
         <button class="nav-btn" data-tab="hashtag">해시태그</button>
+        <button class="nav-btn" data-tab="freq">빈도분석</button>
         <span class="nav-divider"></span>
         <button class="nav-btn" data-tab="image">이미지편집</button>
         <button class="nav-btn" data-tab="compress">용량줄이기</button>
@@ -64,6 +65,11 @@
           <div class="tool-icon">#️⃣</div>
           <h3>해시태그 · 인스타 줄바꿈</h3>
           <p>키워드를 #태그로, 인스타 줄바꿈 처리</p>
+        </button>
+        <button class="tool-card" data-tab="freq">
+          <div class="tool-icon">📈</div>
+          <h3>단어 빈도 분석</h3>
+          <p>원고 속 단어가 몇 번 쓰였는지·키워드 밀도 분석</p>
         </button>
       </div>
 
@@ -302,6 +308,39 @@
           <button class="btn primary" id="insta-run">줄바꿈 변환 + 복사</button>
         </div>
         <div class="status" id="insta-status"></div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 단어 빈도 분석 ============ -->
+    <section class="tab" id="tab-freq">
+      <h2 class="tab-title">📈 단어 빈도 분석 (형태소)</h2>
+      <p class="tab-desc">원고를 붙여넣으면 어떤 단어가 몇 번 쓰였는지 세어줍니다. 조사(은/는/이/가…)를 묶어 키워드 밀도를 보기 좋게 정리합니다.</p>
+      <div class="panel">
+        <textarea id="freq-input" rows="10" placeholder="여기에 블로그 원고나 글을 통째로 붙여넣으세요."></textarea>
+        <div class="panel-row controls">
+          <label>분석 단위
+            <select id="freq-unit">
+              <option value="word">단어</option>
+              <option value="bigram">2단어 묶음(구문)</option>
+            </select>
+          </label>
+          <label>최소 글자수 <input type="number" id="freq-minlen" value="2" min="1" max="10" /></label>
+          <label class="check"><input type="checkbox" id="freq-josa" checked /> 조사 정규화</label>
+          <label class="check"><input type="checkbox" id="freq-stop" checked /> 불용어 제외</label>
+          <button class="btn primary" id="freq-run">분석하기</button>
+          <button class="btn" id="freq-copy">복사</button>
+          <button class="btn" id="freq-csv">CSV 다운로드</button>
+        </div>
+        <div class="status" id="freq-status"></div>
+        <div class="table-wrap">
+          <table id="freq-table" class="data-table hidden">
+            <thead>
+              <tr><th>순위</th><th>단어</th><th class="num">횟수</th><th class="num">비율</th><th>막대</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
       <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
     </section>

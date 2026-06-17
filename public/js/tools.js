@@ -159,6 +159,105 @@ function makeDropzone(el, onFiles) {
 })();
 
 /* =========================================================
+   단어 빈도 분석 (간이 형태소)
+========================================================= */
+(function () {
+  const input = document.getElementById('freq-input');
+  const status = document.getElementById('freq-status');
+  const table = document.getElementById('freq-table');
+  const tbody = table.querySelector('tbody');
+  let rows = [];
+
+  // 긴 조사부터 잘라내야 하므로 길이순 정렬
+  const JOSA = [
+    '으로서', '으로써', '에서는', '에게서', '이라는', '이라고', '으로', '에서', '에게',
+    '한테', '부터', '까지', '처럼', '보다', '마다', '조차', '마저', '밖에', '이나', '이란',
+    '으론', '에는', '에도', '이는', '은', '는', '이', '가', '을', '를', '에', '의', '와',
+    '과', '도', '로', '만', '나', '야', '여', '께', '랑',
+  ].sort((a, b) => b.length - a.length);
+
+  const STOP = new Set([
+    '그리고', '그러나', '하지만', '그래서', '그런데', '또한', '또', '즉', '및', '등', '이런',
+    '저런', '그런', '이것', '저것', '그것', '여기', '거기', '저기', '합니다', '입니다',
+    '있습니다', '없습니다', '때문', '경우', '위해', '통해', '대한', '대해', '관련', '우리',
+    '저희', '정말', '너무', '매우', '아주', '가장', '더욱', '바로', '다시', '다른', '같은',
+    '많은', '모든', '어떤', '무엇', '누구', '언제', '어디', '그냥', '거의', '점점',
+  ]);
+
+  function stripJosa(w) {
+    for (const j of JOSA) {
+      if (w.length > j.length + 1 && w.endsWith(j)) return w.slice(0, -j.length);
+    }
+    return w;
+  }
+
+  document.getElementById('freq-run').addEventListener('click', run);
+
+  function run() {
+    const text = input.value;
+    if (!text.trim()) return setStatus(status, '원고를 입력해주세요.', 'error');
+
+    const unit = document.getElementById('freq-unit').value;
+    const minLen = parseInt(document.getElementById('freq-minlen').value, 10) || 1;
+    const useJosa = document.getElementById('freq-josa').checked;
+    const useStop = document.getElementById('freq-stop').checked;
+
+    // 한글/영문·숫자 덩어리만 토큰화
+    let tokens = (text.toLowerCase().match(/[가-힣]+|[a-z0-9]+/g) || []);
+    if (useJosa) tokens = tokens.map((t) => (/[가-힣]/.test(t) ? stripJosa(t) : t));
+    tokens = tokens.filter((t) => [...t].length >= minLen);
+    if (useStop) tokens = tokens.filter((t) => !STOP.has(t));
+
+    let units = tokens;
+    if (unit === 'bigram') {
+      units = [];
+      for (let i = 0; i < tokens.length - 1; i++) units.push(tokens[i] + ' ' + tokens[i + 1]);
+    }
+
+    const total = units.length;
+    if (total === 0) return setStatus(status, '분석할 단어가 없습니다. 옵션을 조정해보세요.', 'error');
+
+    const counts = new Map();
+    for (const u of units) counts.set(u, (counts.get(u) || 0) + 1);
+
+    rows = [...counts.entries()]
+      .map(([word, count]) => ({ word, count, pct: (count / total) * 100 }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 200);
+
+    render();
+    setStatus(status, `총 ${total.toLocaleString()}개 / 고유 ${counts.size.toLocaleString()}개 — 상위 ${rows.length}개 표시`, 'ok');
+  }
+
+  function render() {
+    const max = rows[0] ? rows[0].count : 1;
+    tbody.innerHTML = rows
+      .map(
+        (r, i) => `<tr>
+          <td>${i + 1}</td>
+          <td><b>${escapeHtml(r.word)}</b></td>
+          <td class="num">${r.count.toLocaleString()}</td>
+          <td class="num">${r.pct.toFixed(1)}%</td>
+          <td><div class="freq-bar" style="width:${(r.count / max) * 100}%"></div></td>
+        </tr>`
+      )
+      .join('');
+    table.classList.remove('hidden');
+  }
+
+  document.getElementById('freq-copy').addEventListener('click', () => {
+    if (!rows.length) return setStatus(status, '먼저 분석해주세요.', 'error');
+    copyText(rows.map((r) => `${r.word}\t${r.count}\t${r.pct.toFixed(1)}%`).join('\n'), status);
+  });
+  document.getElementById('freq-csv').addEventListener('click', () => {
+    if (!rows.length) return setStatus(status, '먼저 분석해주세요.', 'error');
+    const csv = '순위,단어,횟수,비율\n' +
+      rows.map((r, i) => `${i + 1},"${r.word}",${r.count},${r.pct.toFixed(1)}%`).join('\n');
+    downloadBlob(new Blob(['﻿' + csv], { type: 'text/csv' }), '단어빈도.csv');
+  });
+})();
+
+/* =========================================================
    이미지 용량 줄이기 (압축)
 ========================================================= */
 (function () {
