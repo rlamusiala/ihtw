@@ -24,14 +24,14 @@ function fmtSize(bytes) {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / 1024 / 1024).toFixed(2) + ' MB';
 }
-// 드롭존 만들기. onFiles(File[]) 콜백.
-function makeDropzone(el, onFiles) {
+// 드롭존 만들기. onFiles(File[]) 콜백. accept = 받을 MIME 접두사.
+function makeDropzone(el, onFiles, accept = 'image/') {
   ['dragenter', 'dragover'].forEach((ev) =>
     el.addEventListener(ev, (e) => { e.preventDefault(); el.classList.add('dragover'); }));
   ['dragleave', 'drop'].forEach((ev) =>
     el.addEventListener(ev, (e) => { e.preventDefault(); el.classList.remove('dragover'); }));
   el.addEventListener('drop', (e) => {
-    const files = [...(e.dataTransfer.files || [])].filter((f) => f.type.startsWith('image/'));
+    const files = [...(e.dataTransfer.files || [])].filter((f) => f.type.startsWith(accept));
     if (files.length) onFiles(files);
   });
 }
@@ -607,5 +607,282 @@ function makeDropzone(el, onFiles) {
     const content = await zip.generateAsync({ type: 'blob' });
     downloadBlob(content, `일괄변환_${files.length}장.zip`);
     setStatus(status, `완료 — ${files.length}장 ZIP 저장`, 'ok');
+  });
+})();
+
+/* =========================================================
+   만 나이 · 날짜 계산기
+========================================================= */
+(function () {
+  const WD = ['일', '월', '화', '수', '목', '금', '토'];
+  const today = () => new Date(new Date().toDateString());
+  const parse = (v) => (v ? new Date(v + 'T00:00:00') : null);
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const fmt = (d) => `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${WD[d.getDay()]})`;
+  const DAY = 86400000;
+
+  // 오늘 날짜 기본값
+  document.getElementById('age-base').value = iso(today());
+  document.getElementById('add-base').value = iso(today());
+
+  document.getElementById('age-run').addEventListener('click', () => {
+    const b = parse(document.getElementById('age-birth').value);
+    const base = parse(document.getElementById('age-base').value) || today();
+    const el = document.getElementById('age-result');
+    if (!b) return setStatus(el, '생년월일을 입력해주세요.', 'error');
+    if (b > base) return setStatus(el, '생년월일이 기준일보다 늦습니다.', 'error');
+    let age = base.getFullYear() - b.getFullYear();
+    if (base.getMonth() < b.getMonth() || (base.getMonth() === b.getMonth() && base.getDate() < b.getDate())) age--;
+    const days = Math.floor((base - b) / DAY);
+    // 다음 생일까지
+    let next = new Date(base.getFullYear(), b.getMonth(), b.getDate());
+    if (next < base) next = new Date(base.getFullYear() + 1, b.getMonth(), b.getDate());
+    const dleft = Math.round((next - base) / DAY);
+    setStatus(el, `만 ${age}세 · 태어난 지 ${days.toLocaleString()}일 · 다음 생일까지 ${dleft === 0 ? '오늘! 🎉' : 'D-' + dleft}`, 'ok');
+  });
+
+  document.getElementById('dday-run').addEventListener('click', () => {
+    const t = parse(document.getElementById('dday-target').value);
+    const el = document.getElementById('dday-result');
+    if (!t) return setStatus(el, '목표일을 입력해주세요.', 'error');
+    const diff = Math.round((t - today()) / DAY);
+    const label = diff === 0 ? 'D-day 🎯' : diff > 0 ? `D-${diff}` : `D+${-diff}`;
+    setStatus(el, `${fmt(t)} → ${label}${diff > 0 ? ` (${diff}일 남음)` : diff < 0 ? ` (${-diff}일 지남)` : ''}`, 'ok');
+  });
+
+  document.getElementById('add-run').addEventListener('click', () => {
+    const base = parse(document.getElementById('add-base').value);
+    const n = parseInt(document.getElementById('add-days').value, 10);
+    const el = document.getElementById('add-result');
+    if (!base || isNaN(n)) return setStatus(el, '기준일과 일수를 입력해주세요.', 'error');
+    const r = new Date(base.getTime() + n * DAY);
+    setStatus(el, `${fmt(base)} 에서 ${n >= 0 ? n + '일 후' : -n + '일 전'} → ${fmt(r)}`, 'ok');
+  });
+
+  document.getElementById('diff-run').addEventListener('click', () => {
+    const a = parse(document.getElementById('diff-a').value);
+    const b = parse(document.getElementById('diff-b').value);
+    const el = document.getElementById('diff-result');
+    if (!a || !b) return setStatus(el, '두 날짜를 모두 입력해주세요.', 'error');
+    const d = Math.abs(Math.round((b - a) / DAY));
+    setStatus(el, `두 날짜 사이는 ${d.toLocaleString()}일 (양 끝 포함 ${(d + 1).toLocaleString()}일)`, 'ok');
+  });
+})();
+
+/* =========================================================
+   추첨기 · 사다리
+========================================================= */
+(function () {
+  const input = document.getElementById('rnd-input');
+  const status = document.getElementById('rnd-status');
+  const resultEl = document.getElementById('rnd-result');
+
+  const names = () => input.value.split('\n').map((s) => s.trim()).filter(Boolean);
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  const chips = (arr) => `<div class="chips">${arr.map((n) => `<span class="chip">${escapeHtml(n)}</span>`).join('')}</div>`;
+
+  document.getElementById('rnd-pick').addEventListener('click', () => {
+    const list = names();
+    const k = parseInt(document.getElementById('rnd-count').value, 10) || 1;
+    if (list.length < 1) return setStatus(status, '후보를 입력해주세요.', 'error');
+    if (k > list.length) return setStatus(status, '뽑을 인원이 후보보다 많습니다.', 'error');
+    const winners = shuffle(list).slice(0, k);
+    resultEl.innerHTML = `<div class="ac-group"><div class="ac-seed">🎉 당첨자 ${k}명</div>${chips(winners)}</div>`;
+    setStatus(status, '추첨 완료!', 'ok');
+  });
+
+  document.getElementById('rnd-shuffle').addEventListener('click', () => {
+    const list = names();
+    if (list.length < 2) return setStatus(status, '후보를 2명 이상 입력해주세요.', 'error');
+    const order = shuffle(list);
+    resultEl.innerHTML = `<div class="ac-group"><div class="ac-seed">🔀 섞은 순서</div><ol>${order.map((n) => `<li>${escapeHtml(n)}</li>`).join('')}</ol></div>`;
+    setStatus(status, '순서를 섞었습니다.', 'ok');
+  });
+
+  document.getElementById('rnd-team').addEventListener('click', () => {
+    const list = names();
+    const t = parseInt(document.getElementById('rnd-teams').value, 10) || 2;
+    if (list.length < t) return setStatus(status, '후보가 팀 수보다 적습니다.', 'error');
+    const sh = shuffle(list);
+    const teams = Array.from({ length: t }, () => []);
+    sh.forEach((n, i) => teams[i % t].push(n));
+    resultEl.innerHTML = teams
+      .map((team, i) => `<div class="ac-group"><div class="ac-seed">👥 ${i + 1}팀 (${team.length}명)</div>${chips(team)}</div>`)
+      .join('');
+    setStatus(status, `${t}개 팀으로 나눴습니다.`, 'ok');
+  });
+
+  // 사다리타기
+  const ladderTable = document.getElementById('ladder-table');
+  document.getElementById('ladder-run').addEventListener('click', () => {
+    const list = names();
+    const results = document.getElementById('ladder-results').value.split('\n').map((s) => s.trim()).filter(Boolean);
+    const st = document.getElementById('ladder-status');
+    if (list.length < 1) return setStatus(st, '위쪽에 참가자를 입력해주세요.', 'error');
+    if (results.length !== list.length)
+      return setStatus(st, `참가자(${list.length})와 결과(${results.length}) 개수가 같아야 합니다.`, 'error');
+    const shuffled = shuffle(results);
+    ladderTable.querySelector('tbody').innerHTML = list
+      .map((p, i) => `<tr><td>${escapeHtml(p)}</td><td><b>${escapeHtml(shuffled[i])}</b></td></tr>`)
+      .join('');
+    ladderTable.classList.remove('hidden');
+    setStatus(st, '사다리 결과가 나왔습니다!', 'ok');
+  });
+})();
+
+/* =========================================================
+   단위 · 평수 변환기
+========================================================= */
+(function () {
+  // 비율 단위(기준값 대비 배수). 온도는 별도 처리.
+  const CATS = {
+    area: { base: '㎡', units: { '㎡': 1, '평': 3.3057851, '제곱피트(ft²)': 0.09290304, '에이커': 4046.8564, '헥타르': 10000 } },
+    length: { base: 'm', units: { 'mm': 0.001, 'cm': 0.01, 'm': 1, 'km': 1000, '인치': 0.0254, '피트': 0.3048, '야드': 0.9144, '마일': 1609.344 } },
+    weight: { base: 'g', units: { 'mg': 0.001, 'g': 1, 'kg': 1000, '톤': 1000000, '온스(oz)': 28.349523, '파운드(lb)': 453.59237, '근(600g)': 600 } },
+    temp: { base: '℃', units: { '℃': 1, '℉': 1, 'K': 1 } },
+  };
+  const catSel = document.getElementById('unit-cat');
+  const fromSel = document.getElementById('unit-from');
+  const valInput = document.getElementById('unit-value');
+  const tbody = document.querySelector('#unit-table tbody');
+
+  function fillUnits() {
+    const cat = CATS[catSel.value];
+    fromSel.innerHTML = Object.keys(cat.units).map((u) => `<option>${u}</option>`).join('');
+    compute();
+  }
+  function tempTo(value, from, to) {
+    let c = from === '℃' ? value : from === '℉' ? ((value - 32) * 5) / 9 : value - 273.15;
+    if (to === '℃') return c;
+    if (to === '℉') return (c * 9) / 5 + 32;
+    return c + 273.15;
+  }
+  function compute() {
+    const cat = CATS[catSel.value];
+    const from = fromSel.value;
+    const v = parseFloat(valInput.value);
+    if (isNaN(v) || !from) { tbody.innerHTML = ''; return; }
+    const rows = Object.keys(cat.units).map((u) => {
+      let out;
+      if (catSel.value === 'temp') out = tempTo(v, from, u);
+      else out = (v * cat.units[from]) / cat.units[u];
+      const rounded = Math.abs(out) >= 1e6 || (Math.abs(out) < 1e-4 && out !== 0)
+        ? out.toExponential(4)
+        : parseFloat(out.toFixed(6)).toLocaleString('ko-KR', { maximumFractionDigits: 6 });
+      const hi = u === from ? ' style="background:var(--brand-soft)"' : '';
+      return `<tr${hi}><td>${u}</td><td class="num"><b>${rounded}</b></td></tr>`;
+    });
+    tbody.innerHTML = rows.join('');
+  }
+  catSel.addEventListener('change', fillUnits);
+  fromSel.addEventListener('change', compute);
+  valInput.addEventListener('input', compute);
+  fillUnits();
+})();
+
+/* =========================================================
+   이미지 → PDF / PDF 합치기
+========================================================= */
+(function () {
+  // --- 이미지 → PDF ---
+  const imgFileInput = document.getElementById('pdf-img-file');
+  const imgDrop = document.getElementById('pdf-img-drop');
+  const imgStatus = document.getElementById('pdf-img-status');
+  const imgListEl = document.getElementById('pdf-img-list');
+  const imgRun = document.getElementById('pdf-img-run');
+  let imgFiles = [];
+
+  imgDrop.addEventListener('click', () => imgFileInput.click());
+  imgFileInput.addEventListener('change', (e) => addImgs([...e.target.files]));
+  makeDropzone(imgDrop, (fs) => addImgs(fs), 'image/');
+
+  function addImgs(fs) {
+    imgFiles = fs.filter((f) => f.type.startsWith('image/'));
+    imgListEl.innerHTML = imgFiles.map((f, i) => `<li><span>${i + 1}. ${escapeHtml(f.name)}</span><span class="st"></span></li>`).join('');
+    imgRun.disabled = imgFiles.length === 0;
+    setStatus(imgStatus, `${imgFiles.length}장 선택됨`, 'ok');
+  }
+
+  imgRun.addEventListener('click', async () => {
+    if (typeof PDFLib === 'undefined') return setStatus(imgStatus, 'PDF 라이브러리를 불러오지 못했습니다(인터넷 확인).', 'error');
+    setStatus(imgStatus, 'PDF 만드는 중...', 'loading');
+    const { PDFDocument } = PDFLib;
+    const pageMode = document.getElementById('pdf-page').value;
+    const doc = await PDFDocument.create();
+    const A4 = [595.28, 841.89];
+
+    for (const file of imgFiles) {
+      const im = await fileToImage(file);
+      // 캔버스로 JPEG 변환(흰 배경) → 용량/호환성 안정
+      const canvas = document.createElement('canvas');
+      canvas.width = im.naturalWidth;
+      canvas.height = im.naturalHeight;
+      const c = canvas.getContext('2d');
+      c.fillStyle = '#fff';
+      c.fillRect(0, 0, canvas.width, canvas.height);
+      c.drawImage(im, 0, 0);
+      const blob = await toBlobAsync(canvas, 'image/jpeg', 0.92);
+      const jpg = await doc.embedJpg(await blob.arrayBuffer());
+
+      let pw, ph;
+      if (pageMode === 'a4') [pw, ph] = A4;
+      else if (pageMode === 'a4l') [pw, ph] = [A4[1], A4[0]];
+      else { pw = jpg.width; ph = jpg.height; }
+      const page = doc.addPage([pw, ph]);
+      // 페이지에 맞춰 비율 유지하며 가운데
+      const scale = Math.min(pw / jpg.width, ph / jpg.height);
+      const w = jpg.width * scale, h = jpg.height * scale;
+      page.drawImage(jpg, { x: (pw - w) / 2, y: (ph - h) / 2, width: w, height: h });
+    }
+    const bytes = await doc.save();
+    downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `이미지모음_${imgFiles.length}장.pdf`);
+    setStatus(imgStatus, `완료 — ${imgFiles.length}페이지 PDF 저장`, 'ok');
+  });
+
+  // --- PDF 합치기 ---
+  const mFileInput = document.getElementById('pdf-merge-file');
+  const mDrop = document.getElementById('pdf-merge-drop');
+  const mStatus = document.getElementById('pdf-merge-status');
+  const mListEl = document.getElementById('pdf-merge-list');
+  const mRun = document.getElementById('pdf-merge-run');
+  let mFiles = [];
+
+  mDrop.addEventListener('click', () => mFileInput.click());
+  mFileInput.addEventListener('change', (e) => addPdfs([...e.target.files]));
+  makeDropzone(mDrop, (fs) => addPdfs(fs), 'application/pdf');
+
+  function addPdfs(fs) {
+    mFiles = fs.filter((f) => f.type === 'application/pdf');
+    mListEl.innerHTML = mFiles.map((f, i) => `<li><span>${i + 1}. ${escapeHtml(f.name)}</span><span class="st"></span></li>`).join('');
+    mRun.disabled = mFiles.length < 2;
+    setStatus(mStatus, mFiles.length < 2 ? 'PDF를 2개 이상 선택하세요.' : `${mFiles.length}개 선택됨`, mFiles.length < 2 ? '' : 'ok');
+  }
+
+  mRun.addEventListener('click', async () => {
+    if (typeof PDFLib === 'undefined') return setStatus(mStatus, 'PDF 라이브러리를 불러오지 못했습니다(인터넷 확인).', 'error');
+    if (mFiles.length < 2) return;
+    setStatus(mStatus, '합치는 중...', 'loading');
+    const { PDFDocument } = PDFLib;
+    const out = await PDFDocument.create();
+    let pages = 0;
+    for (const file of mFiles) {
+      try {
+        const src = await PDFDocument.load(await file.arrayBuffer());
+        const copied = await out.copyPages(src, src.getPageIndices());
+        copied.forEach((p) => { out.addPage(p); pages++; });
+      } catch (err) {
+        setStatus(mStatus, `'${file.name}' 처리 실패(암호화 PDF 등). 건너뜀.`, 'warn');
+      }
+    }
+    const bytes = await out.save();
+    downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `합친PDF_${mFiles.length}개.pdf`);
+    setStatus(mStatus, `완료 — ${mFiles.length}개 / 총 ${pages}페이지 합침`, 'ok');
   });
 })();

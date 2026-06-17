@@ -28,6 +28,11 @@
         <button class="nav-btn" data-tab="qr">QR</button>
         <button class="nav-btn" data-tab="watermark">워터마크</button>
         <button class="nav-btn" data-tab="batch">일괄변환</button>
+        <span class="nav-divider"></span>
+        <button class="nav-btn" data-tab="calc">만나이</button>
+        <button class="nav-btn" data-tab="random">추첨</button>
+        <button class="nav-btn" data-tab="unit">단위변환</button>
+        <button class="nav-btn" data-tab="pdf">PDF</button>
       </nav>
     </div>
   </header>
@@ -105,6 +110,30 @@
           <div class="tool-icon">📦</div>
           <h3>여러 이미지 일괄 변환</h3>
           <p>형식 변환·리사이즈 후 ZIP으로 저장</p>
+        </button>
+      </div>
+
+      <h2 class="section-title">🧮 실용 도구</h2>
+      <div class="card-grid">
+        <button class="tool-card" data-tab="calc">
+          <div class="tool-icon">🎂</div>
+          <h3>만 나이 · 날짜 계산기</h3>
+          <p>만 나이·D-day·날짜 더하기·날짜 차이</p>
+        </button>
+        <button class="tool-card" data-tab="random">
+          <div class="tool-icon">🎲</div>
+          <h3>추첨기 · 사다리</h3>
+          <p>당첨자 뽑기·순서 섞기·팀 나누기·사다리</p>
+        </button>
+        <button class="tool-card" data-tab="unit">
+          <div class="tool-icon">📐</div>
+          <h3>단위 · 평수 변환기</h3>
+          <p>평↔㎡, 길이·무게·온도 변환</p>
+        </button>
+        <button class="tool-card" data-tab="pdf">
+          <div class="tool-icon">📄</div>
+          <h3>이미지 → PDF · PDF 합치기</h3>
+          <p>이미지를 PDF로, 여러 PDF를 하나로</p>
         </button>
       </div>
     </section>
@@ -498,6 +527,144 @@
       <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
     </section>
 
+    <!-- ============ 만 나이 · 날짜 계산기 ============ -->
+    <section class="tab" id="tab-calc">
+      <h2 class="tab-title">🎂 만 나이 · 날짜 계산기</h2>
+      <p class="tab-desc">만 나이, D-day, 날짜 더하기, 두 날짜 사이 일수를 계산합니다.</p>
+
+      <div class="panel">
+        <h3 class="sub-title">만 나이 계산</h3>
+        <div class="panel-row controls">
+          <label>생년월일 <input type="date" id="age-birth" /></label>
+          <label>기준일 <input type="date" id="age-base" /></label>
+          <button class="btn primary" id="age-run">계산</button>
+        </div>
+        <div class="status" id="age-result"></div>
+      </div>
+
+      <div class="panel" style="margin-top:18px;">
+        <h3 class="sub-title">D-day 계산</h3>
+        <div class="panel-row controls">
+          <label>목표일 <input type="date" id="dday-target" /></label>
+          <button class="btn primary" id="dday-run">계산</button>
+        </div>
+        <div class="status" id="dday-result"></div>
+      </div>
+
+      <div class="panel" style="margin-top:18px;">
+        <h3 class="sub-title">날짜 더하기 / 빼기</h3>
+        <div class="panel-row controls">
+          <label>기준일 <input type="date" id="add-base" /></label>
+          <label>일수(±) <input type="number" id="add-days" value="100" /></label>
+          <button class="btn primary" id="add-run">계산</button>
+        </div>
+        <div class="status" id="add-result"></div>
+      </div>
+
+      <div class="panel" style="margin-top:18px;">
+        <h3 class="sub-title">두 날짜 사이</h3>
+        <div class="panel-row controls">
+          <label>날짜 A <input type="date" id="diff-a" /></label>
+          <label>날짜 B <input type="date" id="diff-b" /></label>
+          <button class="btn primary" id="diff-run">계산</button>
+        </div>
+        <div class="status" id="diff-result"></div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 추첨기 · 사다리 ============ -->
+    <section class="tab" id="tab-random">
+      <h2 class="tab-title">🎲 추첨기 · 사다리</h2>
+      <p class="tab-desc">후보를 한 줄에 하나씩 넣고, 당첨자 뽑기·순서 섞기·팀 나누기·사다리타기를 하세요.</p>
+      <div class="panel">
+        <textarea id="rnd-input" rows="7" placeholder="김철수&#10;이영희&#10;박민수&#10;최지우"></textarea>
+        <div class="panel-row controls">
+          <label>뽑을 인원 <input type="number" id="rnd-count" value="1" min="1" /></label>
+          <button class="btn primary" id="rnd-pick">🎯 당첨자 뽑기</button>
+          <button class="btn" id="rnd-shuffle">🔀 순서 섞기</button>
+          <label>팀 수 <input type="number" id="rnd-teams" value="2" min="2" /></label>
+          <button class="btn" id="rnd-team">👥 팀 나누기</button>
+        </div>
+        <div class="status" id="rnd-status"></div>
+        <div id="rnd-result"></div>
+      </div>
+
+      <div class="panel" style="margin-top:18px;">
+        <h3 class="sub-title">사다리타기</h3>
+        <p class="tab-desc" style="margin:0 0 10px;">위 후보(참가자)와 아래 결과를 무작위로 1:1 연결합니다. (예: 결과에 당첨/꽝/커피사기 등)</p>
+        <textarea id="ladder-results" rows="5" placeholder="당첨&#10;꽝&#10;꽝&#10;커피사기"></textarea>
+        <div class="panel-row controls">
+          <button class="btn primary" id="ladder-run">🪜 사다리 돌리기</button>
+        </div>
+        <div class="status" id="ladder-status"></div>
+        <div class="table-wrap"><table id="ladder-table" class="data-table hidden"><thead><tr><th>참가자</th><th>결과</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 단위 · 평수 변환기 ============ -->
+    <section class="tab" id="tab-unit">
+      <h2 class="tab-title">📐 단위 · 평수 변환기</h2>
+      <p class="tab-desc">값을 입력하면 같은 분류의 모든 단위로 즉시 변환됩니다.</p>
+      <div class="panel">
+        <div class="panel-row controls">
+          <label>분류
+            <select id="unit-cat">
+              <option value="area">넓이 (평·㎡)</option>
+              <option value="length">길이</option>
+              <option value="weight">무게</option>
+              <option value="temp">온도</option>
+            </select>
+          </label>
+          <label>값 <input type="number" id="unit-value" value="1" /></label>
+          <label>기준 단위 <select id="unit-from"></select></label>
+        </div>
+        <div class="table-wrap"><table id="unit-table" class="data-table"><thead><tr><th>단위</th><th class="num">값</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 이미지 → PDF / PDF 합치기 ============ -->
+    <section class="tab" id="tab-pdf">
+      <h2 class="tab-title">📄 이미지 → PDF · PDF 합치기</h2>
+      <p class="tab-desc">이미지를 PDF로 묶거나, 여러 PDF를 하나로 합칩니다. 처리는 브라우저 안에서만 이뤄집니다.</p>
+
+      <div class="panel">
+        <h3 class="sub-title">이미지 → PDF</h3>
+        <div class="panel-row controls">
+          <label class="file-label">이미지 여러 장 선택<input type="file" id="pdf-img-file" accept="image/*" multiple hidden /></label>
+          <label>용지
+            <select id="pdf-page">
+              <option value="fit">이미지 크기에 맞춤</option>
+              <option value="a4">A4 세로</option>
+              <option value="a4l">A4 가로</option>
+            </select>
+          </label>
+          <button class="btn primary" id="pdf-img-run" disabled>PDF 만들기</button>
+        </div>
+        <div class="status" id="pdf-img-status">이미지를 선택하거나 끌어다 놓으세요.</div>
+        <div class="dropzone bat-drop" id="pdf-img-drop">
+          <div class="drop-hint"><div class="drop-icon">⬆️</div><p>여기로 이미지를 끌어다 놓으세요 (순서대로 페이지가 됩니다)</p></div>
+        </div>
+        <ul id="pdf-img-list" class="file-list"></ul>
+      </div>
+
+      <div class="panel" style="margin-top:18px;">
+        <h3 class="sub-title">PDF 합치기</h3>
+        <div class="panel-row controls">
+          <label class="file-label">PDF 여러 개 선택<input type="file" id="pdf-merge-file" accept="application/pdf" multiple hidden /></label>
+          <button class="btn primary" id="pdf-merge-run" disabled>합치기</button>
+        </div>
+        <div class="status" id="pdf-merge-status">합칠 PDF들을 선택하거나 끌어다 놓으세요.</div>
+        <div class="dropzone bat-drop" id="pdf-merge-drop">
+          <div class="drop-hint"><div class="drop-icon">⬆️</div><p>여기로 PDF들을 끌어다 놓으세요 (선택 순서대로 합쳐집니다)</p></div>
+        </div>
+        <ul id="pdf-merge-list" class="file-list"></ul>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
   </main>
 
   <footer class="footer">
@@ -507,6 +674,7 @@
   <!-- QR 코드 / ZIP 라이브러리 (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script src="js/app.js"></script>
   <script src="js/tools.js"></script>
 </body>
