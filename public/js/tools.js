@@ -1,6 +1,37 @@
 'use strict';
 /* 추가 도구 모음 — app.js의 전역 헬퍼(setStatus, copyText, downloadBlob, showTab, volInput) 사용 */
 
+/* ---------- 상단 드롭다운 메뉴 ---------- */
+(function () {
+  const menus = document.querySelectorAll('.menu');
+
+  // 모바일/터치: 라벨 클릭으로 펼치기
+  menus.forEach((menu) => {
+    const label = menu.querySelector('.menu-label');
+    label.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = menu.classList.contains('open');
+      menus.forEach((m) => m.classList.remove('open'));
+      if (!open) menu.classList.add('open');
+    });
+  });
+  document.addEventListener('click', () => menus.forEach((m) => m.classList.remove('open')));
+
+  // 현재 활성 탭이 속한 카테고리 라벨 강조
+  function syncMenuActive() {
+    const active = document.querySelector('.tab.active');
+    const id = active ? active.id.replace('tab-', '') : 'home';
+    menus.forEach((m) => {
+      const has = [...m.querySelectorAll('[data-tab]')].some((b) => b.dataset.tab === id);
+      m.querySelector('.menu-label').classList.toggle('active', has);
+    });
+  }
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-tab]')) setTimeout(syncMenuActive, 0);
+  });
+  syncMenuActive();
+})();
+
 /* ---------- 공통 헬퍼 ---------- */
 function toBlobAsync(canvas, type, quality) {
   return new Promise((resolve) => canvas.toBlob(resolve, type, quality));

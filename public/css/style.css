@@ -63,31 +63,59 @@ body {
 }
 .logo-sub { font-weight: 900; font-size: 20px; color: var(--ink); }
 .hero-tag { font-weight: 700; color: var(--muted); font-size: 19px; margin: 0; }
-/* 메뉴: 한 줄 유지, 넘치면 가로 스크롤 (스크롤바 숨김) */
+/* 메뉴: 3개 카테고리 드롭다운 */
 .nav {
   display: flex;
-  gap: 4px;
-  flex: 0 1 auto;
-  min-width: 0;
+  gap: 6px;
   margin-left: auto;
-  overflow-x: auto;
-  flex-wrap: nowrap;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  flex: 0 0 auto;
 }
-.nav::-webkit-scrollbar { display: none; }
+.menu { position: relative; }
+.menu-label {
+  border: 0;
+  background: transparent;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.menu-label:hover, .menu:hover .menu-label, .menu-label.active {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.menu-drop {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 210px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 100;
+}
+.menu:hover .menu-drop, .menu.open .menu-drop { display: flex; }
 .nav-btn {
   border: 0;
   background: transparent;
-  padding: 8px 12px;
+  padding: 9px 12px;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--muted);
+  color: var(--ink);
   cursor: pointer;
   font-family: inherit;
-  flex: 0 0 auto;
   white-space: nowrap;
+  text-align: left;
+  width: 100%;
 }
 .nav-btn:hover { background: var(--brand-soft); color: var(--brand); }
 .nav-btn.active { background: var(--brand); color: #fff; }
