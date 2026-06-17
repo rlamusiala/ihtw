@@ -421,15 +421,6 @@ document.getElementById('img-resize-save').addEventListener('click', () => {
   saveCanvas(out, '리사이즈');
 });
 
-// 형식 변환만 저장 (원본 크기 그대로)
-document.getElementById('img-convert').addEventListener('click', () => {
-  const out = document.createElement('canvas');
-  out.width = img.naturalWidth;
-  out.height = img.naturalHeight;
-  out.getContext('2d').drawImage(img, 0, 0);
-  saveCanvas(out, '변환');
-});
-
 // 캔버스를 선택한 형식/품질로 저장
 function saveCanvas(sourceCanvas, baseName) {
   if (!imgLoaded) return setStatus(imgStatus, '먼저 이미지를 불러오세요.', 'error');

@@ -258,6 +258,66 @@ function makeDropzone(el, onFiles) {
 })();
 
 /* =========================================================
+   이미지 형식 변환 (JPG ↔ PNG ↔ WEBP)
+========================================================= */
+(function () {
+  const fileInput = document.getElementById('cv-file');
+  const drop = document.getElementById('cv-drop');
+  const hint = document.getElementById('cv-hint');
+  const preview = document.getElementById('cv-preview');
+  const status = document.getElementById('cv-status');
+  const runBtn = document.getElementById('cv-run');
+  const formatSel = document.getElementById('cv-format');
+  const qWrap = document.getElementById('cv-quality-wrap');
+  const qInput = document.getElementById('cv-quality');
+  let curImg = null;
+  let originalSize = 0;
+  let originalName = 'image';
+
+  drop.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => e.target.files[0] && load(e.target.files[0]));
+  makeDropzone(drop, (files) => load(files[0]));
+
+  function updateQ() {
+    qWrap.style.display = formatSel.value === 'image/png' ? 'none' : 'flex';
+  }
+  formatSel.addEventListener('change', updateQ);
+  qInput.addEventListener('input', () => (document.getElementById('cv-quality-val').textContent = qInput.value));
+  updateQ();
+
+  async function load(file) {
+    originalSize = file.size;
+    originalName = file.name.replace(/\.[^.]+$/, '') || 'image';
+    curImg = await fileToImage(file);
+    preview.src = curImg.src;
+    preview.classList.remove('hidden');
+    hint.classList.add('hidden');
+    drop.classList.add('has-image');
+    runBtn.disabled = false;
+    setStatus(status, `원본: ${curImg.naturalWidth}×${curImg.naturalHeight}, ${fmtSize(originalSize)}`, 'ok');
+  }
+
+  runBtn.addEventListener('click', async () => {
+    if (!curImg) return;
+    const format = formatSel.value;
+    const quality = format === 'image/png' ? undefined : Number(qInput.value) / 100;
+    const ext = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' }[format];
+
+    const canvas = document.createElement('canvas');
+    canvas.width = curImg.naturalWidth;
+    canvas.height = curImg.naturalHeight;
+    const c = canvas.getContext('2d');
+    if (format === 'image/jpeg') { c.fillStyle = '#fff'; c.fillRect(0, 0, canvas.width, canvas.height); }
+    c.drawImage(curImg, 0, 0);
+
+    const blob = await toBlobAsync(canvas, format, quality);
+    if (!blob) return setStatus(status, '변환에 실패했습니다.', 'error');
+    downloadBlob(blob, `${originalName}.${ext}`);
+    setStatus(status, `변환 완료: ${ext.toUpperCase()} · ${fmtSize(blob.size)} (원본 ${fmtSize(originalSize)})`, 'ok');
+  });
+})();
+
+/* =========================================================
    이미지 용량 줄이기 (압축)
 ========================================================= */
 (function () {
