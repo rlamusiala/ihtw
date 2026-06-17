@@ -1,0 +1,16 @@
+# Render.com 배포 설정 (Blueprint)
+# render.com 에서 New + → Blueprint → 이 저장소 선택하면 자동 인식됩니다.
+services:
+  - type: web
+    name: ihtw-tools
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NAVER_ACCESS_KEY
+        sync: false
+      - key: NAVER_SECRET_KEY
+        sync: false
+      - key: NAVER_CUSTOMER_ID
+        sync: false

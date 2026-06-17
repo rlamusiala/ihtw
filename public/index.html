@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>I Hate To Walk — 마케팅 도구함</title>
+  <meta name="description" content="I Hate To Walk(IHTW) — 키워드 검색량, 키워드 조합기, 이미지 편집 도구 모음" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a href="#" class="logo" data-tab="home"><span class="logo-sub">I Hate To Walk</span></a>
+      <nav class="nav">
+        <button class="nav-btn" data-tab="volume">검색량</button>
+        <button class="nav-btn" data-tab="combiner">조합기</button>
+        <button class="nav-btn" data-tab="counter">글자수</button>
+        <button class="nav-btn" data-tab="autocomplete">자동완성</button>
+        <button class="nav-btn" data-tab="hashtag">해시태그</button>
+        <span class="nav-divider"></span>
+        <button class="nav-btn" data-tab="image">이미지편집</button>
+        <button class="nav-btn" data-tab="compress">용량줄이기</button>
+        <button class="nav-btn" data-tab="qr">QR</button>
+        <button class="nav-btn" data-tab="watermark">워터마크</button>
+        <button class="nav-btn" data-tab="batch">일괄변환</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ============ 홈 ============ -->
+    <section class="tab active" id="tab-home">
+      <div class="hero">
+        <h1>일하기 싫다..</h1>
+        <p class="hero-tag">그래도 해야지 어떡해..</p>
+      </div>
+      <h2 class="section-title">🔑 키워드 · 텍스트</h2>
+      <div class="card-grid">
+        <button class="tool-card" data-tab="volume">
+          <div class="tool-icon">📊</div>
+          <h3>키워드 검색량 조회</h3>
+          <p>네이버 PC·모바일 월간 검색량을 한 번에 조회</p>
+        </button>
+        <button class="tool-card" data-tab="combiner">
+          <div class="tool-icon">🔀</div>
+          <h3>키워드 조합기</h3>
+          <p>여러 그룹을 원하는 방식으로 조합해 키워드 생성</p>
+        </button>
+        <button class="tool-card" data-tab="counter">
+          <div class="tool-icon">🔢</div>
+          <h3>글자수 세기</h3>
+          <p>공백 포함/제외 글자수·바이트·단어수 실시간</p>
+        </button>
+        <button class="tool-card" data-tab="autocomplete">
+          <div class="tool-icon">🔎</div>
+          <h3>연관검색어·자동완성</h3>
+          <p>네이버 자동완성 키워드를 한꺼번에 수집</p>
+        </button>
+        <button class="tool-card" data-tab="hashtag">
+          <div class="tool-icon">#️⃣</div>
+          <h3>해시태그 · 인스타 줄바꿈</h3>
+          <p>키워드를 #태그로, 인스타 줄바꿈 처리</p>
+        </button>
+      </div>
+
+      <h2 class="section-title">🖼️ 이미지</h2>
+      <div class="card-grid">
+        <button class="tool-card" data-tab="image">
+          <div class="tool-icon">✂️</div>
+          <h3>이미지 편집</h3>
+          <p>자르기·리사이즈·형식 변환(JPG↔PNG 등)</p>
+        </button>
+        <button class="tool-card" data-tab="compress">
+          <div class="tool-icon">🗜️</div>
+          <h3>이미지 용량 줄이기</h3>
+          <p>목표 용량에 맞춰 자동 압축</p>
+        </button>
+        <button class="tool-card" data-tab="qr">
+          <div class="tool-icon">📱</div>
+          <h3>QR 코드 생성</h3>
+          <p>URL·텍스트를 QR로, 색상·로고까지</p>
+        </button>
+        <button class="tool-card" data-tab="watermark">
+          <div class="tool-icon">💧</div>
+          <h3>이미지 워터마크</h3>
+          <p>로고·텍스트 워터마크 일괄 삽입</p>
+        </button>
+        <button class="tool-card" data-tab="batch">
+          <div class="tool-icon">📦</div>
+          <h3>여러 이미지 일괄 변환</h3>
+          <p>형식 변환·리사이즈 후 ZIP으로 저장</p>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ 키워드 검색량 ============ -->
+    <section class="tab" id="tab-volume">
+      <h2 class="tab-title">📊 키워드 검색량 조회</h2>
+      <p class="tab-desc">키워드를 한 줄에 하나씩 입력하세요. (한 번에 최대 100개)</p>
+      <div class="panel">
+        <div class="panel-row">
+          <textarea id="volume-input" rows="8" placeholder="강남 임플란트&#10;임플란트 가격&#10;치아교정 비용"></textarea>
+        </div>
+        <div class="panel-row controls">
+          <label>최소 검색량 필터
+            <input type="number" id="volume-min" value="0" min="0" step="100" />
+          </label>
+          <button class="btn primary" id="volume-run">검색량 조회</button>
+          <button class="btn" id="volume-copy">결과 복사</button>
+          <button class="btn" id="volume-csv">CSV 다운로드</button>
+        </div>
+        <div class="status" id="volume-status"></div>
+        <div class="table-wrap">
+          <table id="volume-table" class="data-table hidden">
+            <thead>
+              <tr>
+                <th>키워드</th>
+                <th class="num">PC</th>
+                <th class="num">모바일</th>
+                <th class="num">합계</th>
+                <th>경쟁도</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 키워드 조합기 ============ -->
+    <section class="tab" id="tab-combiner">
+      <h2 class="tab-title">🔀 키워드 조합기</h2>
+      <p class="tab-desc">그룹을 추가하고, 원하는 조합 방식을 골라 키워드를 생성하세요. (예: 1+2, 1+3, 1+3+2)</p>
+      <div class="panel">
+        <div class="combiner-groups" id="comb-groups">
+          <!-- 그룹들이 JS로 채워집니다 -->
+        </div>
+        <div class="panel-row">
+          <button class="btn" id="comb-add">+ 그룹 추가</button>
+        </div>
+
+        <div class="recipe-box">
+          <label class="recipe-label">조합 방식 (그룹 번호를 + 로, 여러 방식은 줄바꿈/쉼표로)</label>
+          <input type="text" id="comb-recipe" placeholder="예: 1+2, 1+3, 1+3+2  (비우면 모든 그룹을 순서대로 조합)" />
+          <div class="recipe-hint" id="comb-recipe-hint">현재 그룹: 0개</div>
+        </div>
+
+        <div class="panel-row controls">
+          <label>단어 사이 구분
+            <select id="comb-sep">
+              <option value=" ">공백 ( )</option>
+              <option value="">붙이기 (없음)</option>
+              <option value="_">언더바 (_)</option>
+            </select>
+          </label>
+          <button class="btn primary" id="comb-run">조합 생성</button>
+          <button class="btn" id="comb-copy">결과 복사</button>
+          <button class="btn" id="comb-tovolume">→ 검색량 조회로 보내기</button>
+        </div>
+        <div class="status" id="comb-status"></div>
+        <textarea id="comb-output" rows="10" readonly placeholder="여기에 조합 결과가 나옵니다."></textarea>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 이미지 편집 ============ -->
+    <section class="tab" id="tab-image">
+      <h2 class="tab-title">🖼️ 이미지 편집</h2>
+      <p class="tab-desc">이미지를 자르고, 크기를 바꾸고, 형식(JPG·PNG·WEBP)을 변환하세요. 모든 처리는 브라우저 안에서만 이뤄집니다(업로드 없음).</p>
+      <div class="panel">
+        <div class="panel-row controls">
+          <label class="file-label">
+            이미지 선택
+            <input type="file" id="img-file" accept="image/*" hidden />
+          </label>
+          <label>비율 고정
+            <select id="img-ratio">
+              <option value="free">자유</option>
+              <option value="1">1 : 1 (정사각)</option>
+              <option value="1.7778">16 : 9</option>
+              <option value="0.5625">9 : 16</option>
+              <option value="1.3333">4 : 3</option>
+              <option value="0.8">4 : 5</option>
+            </select>
+          </label>
+          <button class="btn" id="img-reset" disabled>선택 초기화</button>
+        </div>
+
+        <div class="panel-row controls export-bar">
+          <label>저장 형식
+            <select id="img-format">
+              <option value="image/png">PNG (무손실)</option>
+              <option value="image/jpeg">JPG (용량 작음)</option>
+              <option value="image/webp">WEBP (고효율)</option>
+            </select>
+          </label>
+          <label id="img-quality-wrap" style="display:none;">품질 (<span id="img-quality-val">92</span>%)
+            <input type="range" id="img-quality" min="40" max="100" value="92" />
+          </label>
+        </div>
+
+        <div class="panel-row controls" id="img-resize-controls" style="display:none;">
+          <label>가로(px) <input type="number" id="img-w" min="1" /></label>
+          <label>세로(px) <input type="number" id="img-h" min="1" /></label>
+          <label class="check"><input type="checkbox" id="img-lock" checked /> 비율 유지</label>
+        </div>
+
+        <div class="panel-row controls" id="img-actions" style="display:none;">
+          <button class="btn primary" id="img-apply" disabled>✂️ 선택 영역만 남기기 (Enter)</button>
+          <button class="btn" id="img-crop" disabled>자른 영역 바로 저장</button>
+          <button class="btn" id="img-resize-save">리사이즈 저장</button>
+          <button class="btn" id="img-convert">형식 변환만 저장</button>
+        </div>
+
+        <div class="status" id="img-status">이미지를 선택하거나 아래 영역에 끌어다 놓으세요.</div>
+
+        <div class="cropper-stage dropzone" id="img-stage">
+          <div class="drop-hint" id="img-drop-hint">
+            <div class="drop-icon">⬆️</div>
+            <p>여기로 이미지를 끌어다 놓거나<br>위의 <b>이미지 선택</b> 버튼을 누르세요</p>
+          </div>
+          <canvas id="img-canvas"></canvas>
+          <div class="crop-box hidden" id="crop-box">
+            <span class="handle br"></span>
+          </div>
+        </div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 글자수 세기 ============ -->
+    <section class="tab" id="tab-counter">
+      <h2 class="tab-title">🔢 글자수 세기</h2>
+      <p class="tab-desc">입력하는 즉시 글자수가 계산됩니다. 블로그·자소서·SNS 글자수 확인에 사용하세요.</p>
+      <div class="panel">
+        <div class="stat-grid" id="counter-stats">
+          <div class="stat"><span class="stat-num" id="cnt-all">0</span><span class="stat-label">공백 포함</span></div>
+          <div class="stat"><span class="stat-num" id="cnt-nospace">0</span><span class="stat-label">공백 제외</span></div>
+          <div class="stat"><span class="stat-num" id="cnt-bytes">0</span><span class="stat-label">바이트(UTF-8)</span></div>
+          <div class="stat"><span class="stat-num" id="cnt-words">0</span><span class="stat-label">단어</span></div>
+          <div class="stat"><span class="stat-num" id="cnt-lines">0</span><span class="stat-label">줄</span></div>
+          <div class="stat"><span class="stat-num" id="cnt-sentences">0</span><span class="stat-label">문장</span></div>
+        </div>
+        <textarea id="counter-input" rows="12" placeholder="여기에 글을 입력하거나 붙여넣으세요."></textarea>
+        <div class="panel-row controls">
+          <button class="btn" id="counter-clear">지우기</button>
+        </div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 자동완성 ============ -->
+    <section class="tab" id="tab-autocomplete">
+      <h2 class="tab-title">🔎 연관검색어 · 자동완성 수집</h2>
+      <p class="tab-desc">키워드를 한 줄에 하나씩 넣으면(최대 20개), 네이버 자동완성 키워드를 모아줍니다.</p>
+      <div class="panel">
+        <textarea id="ac-input" rows="5" placeholder="임플란트&#10;치아교정"></textarea>
+        <div class="panel-row controls">
+          <button class="btn primary" id="ac-run">자동완성 수집</button>
+          <button class="btn" id="ac-copy">전체 복사</button>
+          <button class="btn" id="ac-tovolume">→ 검색량 조회로 보내기</button>
+        </div>
+        <div class="status" id="ac-status"></div>
+        <div id="ac-groups"></div>
+        <textarea id="ac-output" rows="8" readonly placeholder="수집된 키워드(중복 제거)가 여기에 모입니다."></textarea>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 해시태그 / 줄바꿈 ============ -->
+    <section class="tab" id="tab-hashtag">
+      <h2 class="tab-title">#️⃣ 해시태그 · 인스타 줄바꿈</h2>
+      <p class="tab-desc">키워드를 해시태그로 바꾸거나, 인스타그램에서 줄바꿈이 유지되도록 변환합니다.</p>
+
+      <div class="panel">
+        <h3 class="sub-title">해시태그 변환</h3>
+        <textarea id="tag-input" rows="5" placeholder="강남 임플란트&#10;치아교정&#10;임플란트 가격"></textarea>
+        <div class="panel-row controls">
+          <label class="check"><input type="checkbox" id="tag-nospace" checked /> 태그 내 공백 제거</label>
+          <label>구분
+            <select id="tag-join">
+              <option value="space">공백으로 나열</option>
+              <option value="nl">줄바꿈으로 나열</option>
+            </select>
+          </label>
+          <button class="btn primary" id="tag-run">#태그 만들기</button>
+          <button class="btn" id="tag-copy">복사</button>
+        </div>
+        <textarea id="tag-output" rows="4" readonly placeholder="#강남임플란트 #치아교정 ..."></textarea>
+      </div>
+
+      <div class="panel" style="margin-top:18px;">
+        <h3 class="sub-title">인스타 줄바꿈</h3>
+        <p class="tab-desc" style="margin:0 0 10px;">아래에 줄바꿈/빈 줄을 넣어 작성한 뒤 변환하면, 인스타·페북에 붙여넣어도 줄바꿈이 사라지지 않습니다.</p>
+        <textarea id="insta-input" rows="6" placeholder="첫 줄&#10;&#10;빈 줄도 유지됩니다&#10;마지막 줄"></textarea>
+        <div class="panel-row controls">
+          <button class="btn primary" id="insta-run">줄바꿈 변환 + 복사</button>
+        </div>
+        <div class="status" id="insta-status"></div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 이미지 용량 줄이기 ============ -->
+    <section class="tab" id="tab-compress">
+      <h2 class="tab-title">🗜️ 이미지 용량 줄이기</h2>
+      <p class="tab-desc">목표 용량에 맞춰 화질을 자동 조절해 압축합니다. 처리는 브라우저 안에서만 이뤄집니다.</p>
+      <div class="panel">
+        <div class="panel-row controls">
+          <label class="file-label">이미지 선택<input type="file" id="cmp-file" accept="image/*" hidden /></label>
+          <label>저장 형식
+            <select id="cmp-format">
+              <option value="image/jpeg">JPG</option>
+              <option value="image/webp">WEBP</option>
+            </select>
+          </label>
+          <label>목표 용량(KB, 비우면 화질 우선)
+            <input type="number" id="cmp-target" min="10" step="50" placeholder="예: 300" />
+          </label>
+          <button class="btn primary" id="cmp-run" disabled>압축하기</button>
+        </div>
+        <div class="status" id="cmp-status">이미지를 선택하거나 끌어다 놓으세요.</div>
+        <div class="dropzone compress-drop" id="cmp-drop">
+          <div class="drop-hint" id="cmp-hint"><div class="drop-icon">⬆️</div><p>여기로 이미지를 끌어다 놓으세요</p></div>
+          <img id="cmp-preview" class="hidden" alt="미리보기" />
+        </div>
+        <div id="cmp-result" class="compare-box hidden"></div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ QR 코드 ============ -->
+    <section class="tab" id="tab-qr">
+      <h2 class="tab-title">📱 QR 코드 생성</h2>
+      <p class="tab-desc">URL이나 텍스트를 입력하면 QR 코드를 만듭니다. 색상과 가운데 로고도 넣을 수 있어요.</p>
+      <div class="panel">
+        <div class="panel-row">
+          <textarea id="qr-text" rows="3" placeholder="https://ihtw.com 또는 아무 텍스트"></textarea>
+        </div>
+        <div class="panel-row controls">
+          <label>크기(px) <input type="number" id="qr-size" value="320" min="120" max="1024" step="20" /></label>
+          <label>전경색 <input type="color" id="qr-fg" value="#000000" /></label>
+          <label>배경색 <input type="color" id="qr-bg" value="#ffffff" /></label>
+          <label class="file-label">로고(선택)<input type="file" id="qr-logo" accept="image/*" hidden /></label>
+          <button class="btn primary" id="qr-run">QR 생성</button>
+          <button class="btn" id="qr-save" disabled>PNG 저장</button>
+        </div>
+        <div class="status" id="qr-status"></div>
+        <div class="qr-stage"><canvas id="qr-canvas"></canvas></div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 워터마크 ============ -->
+    <section class="tab" id="tab-watermark">
+      <h2 class="tab-title">💧 이미지 워터마크</h2>
+      <p class="tab-desc">사진에 텍스트나 로고 워터마크를 넣습니다. 처리는 브라우저 안에서만 이뤄집니다.</p>
+      <div class="panel">
+        <div class="panel-row controls">
+          <label class="file-label">사진 선택<input type="file" id="wm-file" accept="image/*" hidden /></label>
+          <label>종류
+            <select id="wm-type">
+              <option value="text">텍스트</option>
+              <option value="logo">로고 이미지</option>
+            </select>
+          </label>
+          <label id="wm-logo-wrap" style="display:none;" class="file-label">로고 선택<input type="file" id="wm-logo" accept="image/*" hidden /></label>
+        </div>
+        <div class="panel-row controls" id="wm-text-controls">
+          <label>문구 <input type="text" id="wm-text" value="© I Hate To Walk" /></label>
+          <label>색상 <input type="color" id="wm-color" value="#ffffff" /></label>
+        </div>
+        <div class="panel-row controls">
+          <label>위치
+            <select id="wm-pos">
+              <option value="br">우하단</option>
+              <option value="bl">좌하단</option>
+              <option value="tr">우상단</option>
+              <option value="tl">좌상단</option>
+              <option value="center">가운데</option>
+              <option value="tile">바둑판(반복)</option>
+            </select>
+          </label>
+          <label>크기 (<span id="wm-size-val">8</span>%)<input type="range" id="wm-size" min="2" max="30" value="8" /></label>
+          <label>투명도 (<span id="wm-opacity-val">50</span>%)<input type="range" id="wm-opacity" min="5" max="100" value="50" /></label>
+          <button class="btn primary" id="wm-save" disabled>워터마크 저장</button>
+        </div>
+        <div class="status" id="wm-status">사진을 선택하거나 끌어다 놓으세요.</div>
+        <div class="dropzone wm-drop" id="wm-drop">
+          <div class="drop-hint" id="wm-hint"><div class="drop-icon">⬆️</div><p>여기로 사진을 끌어다 놓으세요</p></div>
+          <canvas id="wm-canvas" class="hidden"></canvas>
+        </div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 일괄 변환 ============ -->
+    <section class="tab" id="tab-batch">
+      <h2 class="tab-title">📦 여러 이미지 일괄 변환 / 리사이즈</h2>
+      <p class="tab-desc">여러 장을 한 번에 형식 변환·리사이즈한 뒤 ZIP으로 저장합니다. 처리는 브라우저 안에서만 이뤄집니다.</p>
+      <div class="panel">
+        <div class="panel-row controls">
+          <label class="file-label">이미지 여러 장 선택<input type="file" id="bat-file" accept="image/*" multiple hidden /></label>
+          <label>저장 형식
+            <select id="bat-format">
+              <option value="image/jpeg">JPG</option>
+              <option value="image/png">PNG</option>
+              <option value="image/webp">WEBP</option>
+            </select>
+          </label>
+          <label>최대 가로(px, 0=원본)<input type="number" id="bat-maxw" value="0" min="0" step="100" /></label>
+          <label>품질 (<span id="bat-q-val">85</span>%)<input type="range" id="bat-q" min="40" max="100" value="85" /></label>
+          <button class="btn primary" id="bat-run" disabled>변환 후 ZIP 저장</button>
+        </div>
+        <div class="status" id="bat-status">이미지를 선택하거나 끌어다 놓으세요.</div>
+        <div class="dropzone bat-drop" id="bat-drop">
+          <div class="drop-hint"><div class="drop-icon">⬆️</div><p>여기로 여러 이미지를 끌어다 놓으세요</p></div>
+        </div>
+        <ul id="bat-list" class="file-list"></ul>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">IHTW · I Hate To Walk — ihtw.com · 만든이 김영웅</div>
+  </footer>
+
+  <!-- QR 코드 / ZIP 라이브러리 (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/tools.js"></script>
+</body>
+</html>
