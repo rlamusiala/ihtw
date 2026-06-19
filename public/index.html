@@ -44,6 +44,7 @@
             <button class="nav-btn" data-tab="random">🎲 추첨·사다리</button>
             <button class="nav-btn" data-tab="unit">📐 단위·평수 변환</button>
             <button class="nav-btn" data-tab="pdf">📄 이미지→PDF·합치기</button>
+            <button class="nav-btn" data-tab="saju">🔮 사주(만세력)</button>
           </div>
         </div>
       </nav>
@@ -147,6 +148,11 @@
           <div class="tool-icon">📄</div>
           <h3>이미지 → PDF · PDF 합치기</h3>
           <p>이미지를 PDF로, 여러 PDF를 하나로</p>
+        </button>
+        <button class="tool-card" data-tab="saju">
+          <div class="tool-icon">🔮</div>
+          <h3>사주 (만세력)</h3>
+          <p>사주팔자·오행 분포·띠·가벼운 풀이</p>
         </button>
       </div>
     </section>
@@ -674,6 +680,49 @@
           <div class="drop-hint"><div class="drop-icon">⬆️</div><p>여기로 PDF들을 끌어다 놓으세요 (선택 순서대로 합쳐집니다)</p></div>
         </div>
         <ul id="pdf-merge-list" class="file-list"></ul>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 사주 (만세력) ============ -->
+    <section class="tab" id="tab-saju">
+      <h2 class="tab-title">🔮 사주 (만세력)</h2>
+      <p class="tab-desc">양력 생년월일과 태어난 시(時)를 넣으면 사주팔자·오행 분포·띠와 가벼운 풀이를 보여줍니다.</p>
+      <div class="panel">
+        <div class="panel-row controls">
+          <label>생년월일(양력) <input type="date" id="saju-date" /></label>
+          <label>태어난 시
+            <select id="saju-hour">
+              <option value="">시간 모름</option>
+              <option value="0">자시 (23:30~01:29)</option>
+              <option value="1">축시 (01:30~03:29)</option>
+              <option value="2">인시 (03:30~05:29)</option>
+              <option value="3">묘시 (05:30~07:29)</option>
+              <option value="4">진시 (07:30~09:29)</option>
+              <option value="5">사시 (09:30~11:29)</option>
+              <option value="6">오시 (11:30~13:29)</option>
+              <option value="7">미시 (13:30~15:29)</option>
+              <option value="8">신시 (15:30~17:29)</option>
+              <option value="9">유시 (17:30~19:29)</option>
+              <option value="10">술시 (19:30~21:29)</option>
+              <option value="11">해시 (21:30~23:29)</option>
+            </select>
+          </label>
+          <button class="btn primary" id="saju-run">사주 보기</button>
+        </div>
+        <div class="status" id="saju-status"></div>
+        <div id="saju-result" class="hidden">
+          <div class="saju-grid" id="saju-pillars"></div>
+          <div class="saju-section">
+            <h3 class="sub-title">오행 분포</h3>
+            <div id="saju-ohaeng"></div>
+          </div>
+          <div class="saju-section">
+            <h3 class="sub-title">가벼운 풀이</h3>
+            <div id="saju-reading" class="saju-reading"></div>
+          </div>
+          <p class="saju-note">※ 재미로 보는 가벼운 풀이입니다. 년주·월주는 절기(입춘 등) 기준이라, 생일이 절기 경계(매월 초·입춘 무렵)면 하루 차이로 달라질 수 있어요. 음력 생일이면 양력으로 바꿔 입력하세요.</p>
+        </div>
       </div>
       <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
     </section>

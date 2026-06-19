@@ -326,6 +326,43 @@ input[type="color"] { width: 46px; height: 38px; padding: 2px; border-radius: 8p
 }
 #freq-table td:last-child { width: 40%; }
 
+/* ===== 사주 (만세력) ===== */
+.saju-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.saju-col { text-align: center; }
+.saju-col .col-label { font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 700; }
+.saju-col.me .col-label { color: var(--brand); }
+.saju-char {
+  border-radius: 12px;
+  padding: 12px 4px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.saju-char .hanja { font-size: 30px; font-weight: 900; line-height: 1.1; }
+.saju-char .hangul { font-size: 14px; opacity: 0.95; }
+.saju-char .oh { font-size: 12px; opacity: 0.9; }
+.saju-col.me .saju-char { box-shadow: 0 0 0 3px var(--brand); }
+
+.saju-section { margin-top: 20px; }
+.oh-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.oh-bar-label { width: 64px; font-weight: 700; font-size: 14px; }
+.oh-bar-track { flex: 1; background: #eef1f6; border-radius: 6px; height: 18px; overflow: hidden; }
+.oh-bar-fill { height: 100%; border-radius: 6px; }
+.oh-bar-count { width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+.saju-reading { font-size: 15px; line-height: 1.7; }
+.saju-reading b { color: var(--brand); }
+.saju-reading .row { margin-bottom: 8px; }
+.saju-note { font-size: 12px; color: var(--muted); margin-top: 18px; line-height: 1.5; }
+#saju-result.hidden { display: none; }
+
+@media (max-width: 560px) {
+  .saju-char .hanja { font-size: 24px; }
+}
+
 /* ===== Home button ===== */
 .home-row { text-align: center; margin-top: 22px; }
 .home-btn { padding: 11px 28px; font-weight: 700; }

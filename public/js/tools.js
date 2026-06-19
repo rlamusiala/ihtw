@@ -32,6 +32,121 @@
   syncMenuActive();
 })();
 
+/* =========================================================
+   사주 (만세력) — 사주팔자 + 오행 + 띠 + 가벼운 풀이
+   * 일주는 1901-01-01=기묘(己卯) 기준으로 보정(정확).
+   * 년/월주는 절기 근사라 경계일 오차 가능.
+========================================================= */
+(function () {
+  const GAN = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
+  const GAN_H = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+  const JI = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
+  const JI_H = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+  const ANIMAL = ['쥐', '소', '호랑이', '토끼', '용', '뱀', '말', '양', '원숭이', '닭', '개', '돼지'];
+  const OH = ['목', '화', '토', '금', '수'];
+  const OH_FULL = ['목(木)', '화(火)', '토(土)', '금(金)', '수(水)'];
+  const OH_COLOR = ['#1f9d55', '#e0533d', '#caa14a', '#9aa0aa', '#3b5bdb']; // 목화토금수
+  const JI_OH = [4, 2, 0, 0, 2, 1, 1, 2, 3, 3, 2, 4]; // 자축인묘진사오미신유술해 → 오행 index
+  const ganOh = (g) => Math.floor(g / 2); // 0~1목,2~3화,...
+
+  // 율리우스 적일수
+  function jdn(y, m, d) {
+    const a = Math.floor((14 - m) / 12);
+    const yy = y + 4800 - a;
+    const mm = m + 12 * a - 3;
+    return d + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+  }
+  // 사주 월지 경계(절기 근사): [월, 일, 지지index]
+  const MB = [[1, 6, 1], [2, 4, 2], [3, 6, 3], [4, 5, 4], [5, 6, 5], [6, 6, 6], [7, 7, 7], [8, 8, 8], [9, 8, 9], [10, 8, 10], [11, 7, 11], [12, 7, 0]];
+  function monthBranch(m, d) {
+    let br = 0; // 대설~소한(자월)
+    for (const [bm, bd, b] of MB) if (m > bm || (m === bm && d >= bd)) br = b;
+    return br;
+  }
+  const beforeIpchun = (m, d) => m < 2 || (m === 2 && d < 4);
+
+  function calc(y, m, d, hJi /* 0~11 또는 null */) {
+    const yy = beforeIpchun(m, d) ? y - 1 : y;
+    const yGan = ((yy - 4) % 10 + 10) % 10, yJi = ((yy - 4) % 12 + 12) % 12;
+    const mJi = monthBranch(m, d);
+    const inGan = ((yGan % 5) * 2 + 2) % 10;
+    const mGan = (inGan + ((mJi - 2 + 12) % 12)) % 10;
+    const di = (jdn(y, m, d) + 49) % 60;
+    const dGan = di % 10, dJi = di % 12;
+    let hGan = null;
+    if (hJi !== null) hGan = (((dGan % 5) * 2) % 10 + hJi) % 10;
+    return { yGan, yJi, mGan, mJi, dGan, dJi, hGan, hJi };
+  }
+
+  const READ_DAY = {
+    목: '곧고 성장 지향적이며 인정이 많습니다. 새로운 일을 벌이고 추진하는 힘이 있어요.',
+    화: '밝고 표현력이 좋으며 열정적입니다. 사람을 끌어당기는 활동가 기질이 있어요.',
+    토: '듬직하고 신뢰감을 주며 포용력이 큽니다. 안정과 중재에 강해요.',
+    금: '원칙과 의리가 분명하고 결단력이 있습니다. 맺고 끊는 것이 확실해요.',
+    수: '생각이 깊고 유연하며 지혜롭습니다. 상황 적응력과 통찰이 뛰어나요.',
+  };
+
+  function pillarHTML(label, gan, ji, isMe) {
+    const gOh = ganOh(gan), jOh = JI_OH[ji];
+    return `<div class="saju-col${isMe ? ' me' : ''}">
+      <div class="col-label">${label}${isMe ? ' (나)' : ''}</div>
+      <div class="saju-char" style="background:${OH_COLOR[gOh]}">
+        <div class="hanja">${GAN_H[gan]}</div><div class="hangul">${GAN[gan]}</div><div class="oh">${OH[gOh]}</div>
+      </div>
+      <div class="saju-char" style="background:${OH_COLOR[jOh]}">
+        <div class="hanja">${JI_H[ji]}</div><div class="hangul">${JI[ji]}</div><div class="oh">${OH[jOh]}</div>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('saju-run').addEventListener('click', () => {
+    const dateVal = document.getElementById('saju-date').value;
+    const hourVal = document.getElementById('saju-hour').value;
+    const status = document.getElementById('saju-status');
+    if (!dateVal) return setStatus(status, '생년월일을 입력해주세요.', 'error');
+    const [y, m, d] = dateVal.split('-').map(Number);
+    if (y < 1900 || y > 2100) return setStatus(status, '1900~2100년 사이로 입력해주세요.', 'error');
+    const hJi = hourVal === '' ? null : Number(hourVal);
+
+    const s = calc(y, m, d, hJi);
+
+    // 사주팔자 표시 (년 월 일 시)
+    let grid = pillarHTML('년주', s.yGan, s.yJi, false) + pillarHTML('월주', s.mGan, s.mJi, false) + pillarHTML('일주', s.dGan, s.dJi, true);
+    grid += s.hJi !== null
+      ? pillarHTML('시주', s.hGan, s.hJi, false)
+      : `<div class="saju-col"><div class="col-label">시주</div><div class="saju-char" style="background:#d4d8e0;color:#fff"><div class="hanja">?</div><div class="hangul">시간모름</div><div class="oh">-</div></div></div>`;
+    document.getElementById('saju-pillars').innerHTML = grid;
+
+    // 오행 분포
+    const cnt = [0, 0, 0, 0, 0];
+    cnt[ganOh(s.yGan)]++; cnt[JI_OH[s.yJi]]++;
+    cnt[ganOh(s.mGan)]++; cnt[JI_OH[s.mJi]]++;
+    cnt[ganOh(s.dGan)]++; cnt[JI_OH[s.dJi]]++;
+    if (s.hJi !== null) { cnt[ganOh(s.hGan)]++; cnt[JI_OH[s.hJi]]++; }
+    const total = cnt.reduce((a, b) => a + b, 0);
+    const maxc = Math.max(...cnt);
+    document.getElementById('saju-ohaeng').innerHTML = OH.map((o, i) =>
+      `<div class="oh-bar-row"><div class="oh-bar-label" style="color:${OH_COLOR[i]}">${OH_FULL[i]}</div>
+        <div class="oh-bar-track"><div class="oh-bar-fill" style="width:${(cnt[i] / maxc) * 100}%;background:${OH_COLOR[i]}"></div></div>
+        <div class="oh-bar-count">${cnt[i]}</div></div>`).join('');
+
+    // 가벼운 풀이
+    const dayOh = OH[ganOh(s.dGan)];
+    const lacking = OH.filter((o, i) => cnt[i] === 0);
+    const strong = OH.filter((o, i) => cnt[i] === maxc && maxc >= 3);
+    const animal = ANIMAL[s.yJi];
+    let reading = `<div class="row">🐾 <b>${animal}띠</b> · 일간(나)은 <b>${GAN[s.dGan]}${GAN_H[s.dGan]}</b>, 오행으로는 <b>${dayOh}</b>입니다.</div>`;
+    reading += `<div class="row">${READ_DAY[dayOh]}</div>`;
+    if (strong.length) reading += `<div class="row">사주에 <b>${strong.join('·')}</b> 기운이 강한 편이에요.</div>`;
+    if (lacking.length) reading += `<div class="row">상대적으로 <b>${lacking.join('·')}</b> 기운이 부족해, 이 기운을 보완하면 균형에 도움이 됩니다.</div>`;
+    if (!strong.length && !lacking.length) reading += `<div class="row">오행이 비교적 고르게 분포해 균형이 좋은 편이에요.</div>`;
+    document.getElementById('saju-reading').innerHTML = reading;
+
+    document.getElementById('saju-result').classList.remove('hidden');
+    setStatus(status, '사주팔자를 계산했습니다.', 'ok');
+  });
+})();
+
 /* ---------- 공통 헬퍼 ---------- */
 function toBlobAsync(canvas, type, quality) {
   return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
