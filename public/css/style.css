@@ -380,6 +380,17 @@ input[type="color"] { width: 46px; height: 38px; padding: 2px; border-radius: 8p
   .saju-char .hanja { font-size: 24px; }
 }
 
+/* ===== 통합 이미지 편집기 ===== */
+.edit-group {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  background: #fafbff;
+}
+.edit-group-title { font-weight: 700; margin-bottom: 10px; font-size: 15px; }
+.edit-group-title .eg-hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+
 /* ===== Home button ===== */
 .home-row { text-align: center; margin-top: 22px; }
 .home-btn { padding: 11px 28px; font-weight: 700; }

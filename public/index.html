@@ -29,11 +29,9 @@
         <div class="menu">
           <button class="menu-label" type="button">이미지 ▾</button>
           <div class="menu-drop">
-            <button class="nav-btn" data-tab="image">✂️ 이미지 자르기</button>
-            <button class="nav-btn" data-tab="convert">🔄 형식 변환</button>
-            <button class="nav-btn" data-tab="compress">🗜️ 용량 줄이기</button>
+            <button class="nav-btn" data-tab="image">🖼️ 이미지 편집</button>
+            <button class="nav-btn" data-tab="join">🧩 이미지 합치기</button>
             <button class="nav-btn" data-tab="qr">📱 QR 코드</button>
-            <button class="nav-btn" data-tab="watermark">💧 워터마크</button>
             <button class="nav-btn" data-tab="batch">📦 일괄 변환</button>
           </div>
         </div>
@@ -44,6 +42,8 @@
             <button class="nav-btn" data-tab="random">🎲 추첨·사다리</button>
             <button class="nav-btn" data-tab="unit">📐 단위·평수 변환</button>
             <button class="nav-btn" data-tab="pdf">📄 이미지→PDF·합치기</button>
+            <button class="nav-btn" data-tab="salary">💰 연봉 실수령</button>
+            <button class="nav-btn" data-tab="vat">🧾 부가세·할인</button>
             <button class="nav-btn" data-tab="saju">🔮 사주(만세력)</button>
           </div>
         </div>
@@ -95,29 +95,19 @@
       <h2 class="section-title">🖼️ 이미지</h2>
       <div class="card-grid">
         <button class="tool-card" data-tab="image">
-          <div class="tool-icon">✂️</div>
-          <h3>이미지 자르기 / 리사이즈</h3>
-          <p>영역을 드래그해 자르고 크기 조정</p>
+          <div class="tool-icon">🖼️</div>
+          <h3>이미지 편집</h3>
+          <p>자르기·리사이즈·형식변환·압축·워터마크·모자이크</p>
         </button>
-        <button class="tool-card" data-tab="convert">
-          <div class="tool-icon">🔄</div>
-          <h3>이미지 형식 변환</h3>
-          <p>JPG · PNG · WEBP 사이로 형식 변환</p>
-        </button>
-        <button class="tool-card" data-tab="compress">
-          <div class="tool-icon">🗜️</div>
-          <h3>이미지 용량 줄이기</h3>
-          <p>목표 용량에 맞춰 자동 압축</p>
+        <button class="tool-card" data-tab="join">
+          <div class="tool-icon">🧩</div>
+          <h3>이미지 합치기</h3>
+          <p>여러 이미지를 세로·가로로 이어 한 장으로</p>
         </button>
         <button class="tool-card" data-tab="qr">
           <div class="tool-icon">📱</div>
           <h3>QR 코드 생성</h3>
           <p>URL·텍스트를 QR로, 색상·로고까지</p>
-        </button>
-        <button class="tool-card" data-tab="watermark">
-          <div class="tool-icon">💧</div>
-          <h3>이미지 워터마크</h3>
-          <p>로고·텍스트 워터마크 일괄 삽입</p>
         </button>
         <button class="tool-card" data-tab="batch">
           <div class="tool-icon">📦</div>
@@ -147,6 +137,16 @@
           <div class="tool-icon">📄</div>
           <h3>이미지 → PDF · PDF 합치기</h3>
           <p>이미지를 PDF로, 여러 PDF를 하나로</p>
+        </button>
+        <button class="tool-card" data-tab="salary">
+          <div class="tool-icon">💰</div>
+          <h3>연봉 실수령액 계산기</h3>
+          <p>4대보험·세금 공제 후 월 실수령</p>
+        </button>
+        <button class="tool-card" data-tab="vat">
+          <div class="tool-icon">🧾</div>
+          <h3>부가세 · 할인 계산기</h3>
+          <p>부가세 10%, 할인가 빠른 계산</p>
         </button>
         <button class="tool-card" data-tab="saju">
           <div class="tool-icon">🔮</div>
@@ -227,30 +227,13 @@
       <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
     </section>
 
-    <!-- ============ 이미지 자르기 ============ -->
+    <!-- ============ 이미지 편집 (통합) ============ -->
     <section class="tab" id="tab-image">
-      <h2 class="tab-title">✂️ 이미지 자르기 / 리사이즈</h2>
-      <p class="tab-desc">영역을 드래그해 자르고(Enter=선택만 남기기, ESC=취소, Ctrl+Z=되돌리기), 크기를 조정하세요. 모든 처리는 브라우저 안에서만 이뤄집니다.</p>
+      <h2 class="tab-title">🖼️ 이미지 편집</h2>
+      <p class="tab-desc">한 장을 올려 자르기·리사이즈·워터마크·모자이크·형식변환을 차례로 적용하고 저장하세요. (Enter=선택만 남기기, ESC=선택취소, Ctrl+Z=되돌리기) 모든 처리는 브라우저 안에서만 이뤄집니다.</p>
       <div class="panel">
         <div class="panel-row controls">
-          <label class="file-label">
-            이미지 선택
-            <input type="file" id="img-file" accept="image/*" hidden />
-          </label>
-          <label>비율 고정
-            <select id="img-ratio">
-              <option value="free">자유</option>
-              <option value="1">1 : 1 (정사각)</option>
-              <option value="1.7778">16 : 9</option>
-              <option value="0.5625">9 : 16</option>
-              <option value="1.3333">4 : 3</option>
-              <option value="0.8">4 : 5</option>
-            </select>
-          </label>
-          <button class="btn" id="img-reset" disabled>선택 초기화</button>
-        </div>
-
-        <div class="panel-row controls export-bar">
+          <label class="file-label">이미지 선택<input type="file" id="img-file" accept="image/*" hidden /></label>
           <label>저장 형식
             <select id="img-format">
               <option value="image/png">PNG (무손실)</option>
@@ -261,18 +244,63 @@
           <label id="img-quality-wrap" style="display:none;">품질 (<span id="img-quality-val">92</span>%)
             <input type="range" id="img-quality" min="40" max="100" value="92" />
           </label>
+          <button class="btn primary" id="img-save" disabled>💾 저장</button>
+          <button class="btn" id="img-undo" disabled>↩ 실행취소</button>
+          <button class="btn" id="img-reset" disabled>🗑 처음으로</button>
         </div>
 
-        <div class="panel-row controls" id="img-resize-controls" style="display:none;">
-          <label>가로(px) <input type="number" id="img-w" min="1" /></label>
-          <label>세로(px) <input type="number" id="img-h" min="1" /></label>
-          <label class="check"><input type="checkbox" id="img-lock" checked /> 비율 유지</label>
-        </div>
+        <div id="img-tools" style="display:none;">
+          <div class="edit-group">
+            <div class="edit-group-title">✂️ 자르기 · 🟦 모자이크 <span class="eg-hint">— 이미지에서 영역을 드래그하세요</span></div>
+            <div class="panel-row controls">
+              <label>비율 고정
+                <select id="img-ratio">
+                  <option value="free">자유</option>
+                  <option value="1">1 : 1</option>
+                  <option value="1.7778">16 : 9</option>
+                  <option value="0.5625">9 : 16</option>
+                  <option value="1.3333">4 : 3</option>
+                  <option value="0.8">4 : 5</option>
+                </select>
+              </label>
+              <button class="btn primary" id="img-apply" disabled>✂️ 선택 영역만 남기기</button>
+              <button class="btn" id="img-mosaic" disabled>🟦 선택 영역 모자이크</button>
+              <label>모자이크 강도 (<span id="img-mosaic-val">12</span>)<input type="range" id="img-mosaic-size" min="4" max="40" value="12" /></label>
+              <button class="btn" id="img-deselect" disabled>선택 해제</button>
+            </div>
+          </div>
 
-        <div class="panel-row controls" id="img-actions" style="display:none;">
-          <button class="btn primary" id="img-apply" disabled>✂️ 선택 영역만 남기기 (Enter)</button>
-          <button class="btn" id="img-crop" disabled>자른 영역 바로 저장</button>
-          <button class="btn" id="img-resize-save">리사이즈 저장</button>
+          <div class="edit-group">
+            <div class="edit-group-title">📐 리사이즈</div>
+            <div class="panel-row controls">
+              <label>가로(px) <input type="number" id="img-w" min="1" /></label>
+              <label>세로(px) <input type="number" id="img-h" min="1" /></label>
+              <label class="check"><input type="checkbox" id="img-lock" checked /> 비율 유지</label>
+              <button class="btn" id="img-resize-apply">리사이즈 적용</button>
+            </div>
+          </div>
+
+          <div class="edit-group">
+            <div class="edit-group-title">💧 워터마크</div>
+            <div class="panel-row controls">
+              <label>종류
+                <select id="wm2-type"><option value="text">텍스트</option><option value="logo">로고 이미지</option></select>
+              </label>
+              <label id="wm2-text-wrap">문구 <input type="text" id="wm2-text" value="© I Hate To Work" /></label>
+              <label id="wm2-color-wrap">색상 <input type="color" id="wm2-color" value="#ffffff" /></label>
+              <label id="wm2-logo-wrap" class="file-label" style="display:none;">로고 선택<input type="file" id="wm2-logo" accept="image/*" hidden /></label>
+              <label>위치
+                <select id="wm2-pos">
+                  <option value="br">우하단</option><option value="bl">좌하단</option>
+                  <option value="tr">우상단</option><option value="tl">좌상단</option>
+                  <option value="center">가운데</option><option value="tile">바둑판(반복)</option>
+                </select>
+              </label>
+              <label>크기 (<span id="wm2-size-val">8</span>%)<input type="range" id="wm2-size" min="2" max="30" value="8" /></label>
+              <label>투명도 (<span id="wm2-op-val">50</span>%)<input type="range" id="wm2-op" min="5" max="100" value="50" /></label>
+              <button class="btn" id="wm2-apply">워터마크 적용</button>
+            </div>
+          </div>
         </div>
 
         <div class="status" id="img-status">이미지를 선택하거나 아래 영역에 끌어다 놓으세요.</div>
@@ -283,38 +311,34 @@
             <p>여기로 이미지를 끌어다 놓거나<br>위의 <b>이미지 선택</b> 버튼을 누르세요</p>
           </div>
           <canvas id="img-canvas"></canvas>
-          <div class="crop-box hidden" id="crop-box">
-            <span class="handle br"></span>
-          </div>
+          <div class="crop-box hidden" id="crop-box"><span class="handle br"></span></div>
         </div>
       </div>
       <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
     </section>
 
-    <!-- ============ 이미지 형식 변환 ============ -->
-    <section class="tab" id="tab-convert">
-      <h2 class="tab-title">🔄 이미지 형식 변환</h2>
-      <p class="tab-desc">JPG · PNG · WEBP 사이로 형식을 바꿔 저장합니다. (예: JPG → PNG) 처리는 브라우저 안에서만 이뤄집니다.</p>
+    <!-- ============ 이미지 합치기 ============ -->
+    <section class="tab" id="tab-join">
+      <h2 class="tab-title">🧩 이미지 합치기</h2>
+      <p class="tab-desc">여러 이미지를 세로 또는 가로로 이어 한 장으로 만듭니다. 상세페이지·카드뉴스에 좋아요. 처리는 브라우저 안에서만.</p>
       <div class="panel">
         <div class="panel-row controls">
-          <label class="file-label">이미지 선택<input type="file" id="cv-file" accept="image/*" hidden /></label>
-          <label>저장 형식
-            <select id="cv-format">
-              <option value="image/png">PNG (무손실 · 투명 유지)</option>
-              <option value="image/jpeg">JPG (용량 작음)</option>
-              <option value="image/webp">WEBP (고효율)</option>
-            </select>
+          <label class="file-label">이미지 여러 장 선택<input type="file" id="join-file" accept="image/*" multiple hidden /></label>
+          <label>방향
+            <select id="join-dir"><option value="v">세로로 잇기</option><option value="h">가로로 잇기</option></select>
           </label>
-          <label id="cv-quality-wrap" style="display:none;">품질 (<span id="cv-quality-val">92</span>%)
-            <input type="range" id="cv-quality" min="40" max="100" value="92" />
+          <label>정렬 기준
+            <select id="join-fit"><option value="max">큰 쪽에 맞춤</option><option value="min">작은 쪽에 맞춤</option></select>
           </label>
-          <button class="btn primary" id="cv-run" disabled>변환 저장</button>
+          <label>간격(px) <input type="number" id="join-gap" value="0" min="0" /></label>
+          <label>배경 <input type="color" id="join-bg" value="#ffffff" /></label>
+          <button class="btn primary" id="join-run" disabled>합치기 + 저장</button>
         </div>
-        <div class="status" id="cv-status">이미지를 선택하거나 끌어다 놓으세요.</div>
-        <div class="dropzone compress-drop" id="cv-drop">
-          <div class="drop-hint" id="cv-hint"><div class="drop-icon">⬆️</div><p>여기로 이미지를 끌어다 놓으세요</p></div>
-          <img id="cv-preview" class="hidden" alt="미리보기" />
+        <div class="status" id="join-status">이미지를 선택하거나 끌어다 놓으세요. (선택 순서대로 이어집니다)</div>
+        <div class="dropzone bat-drop" id="join-drop">
+          <div class="drop-hint"><div class="drop-icon">⬆️</div><p>여기로 여러 이미지를 끌어다 놓으세요</p></div>
         </div>
+        <ul id="join-list" class="file-list"></ul>
       </div>
       <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
     </section>
@@ -425,34 +449,6 @@
       <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
     </section>
 
-    <!-- ============ 이미지 용량 줄이기 ============ -->
-    <section class="tab" id="tab-compress">
-      <h2 class="tab-title">🗜️ 이미지 용량 줄이기</h2>
-      <p class="tab-desc">목표 용량에 맞춰 화질을 자동 조절해 압축합니다. 처리는 브라우저 안에서만 이뤄집니다.</p>
-      <div class="panel">
-        <div class="panel-row controls">
-          <label class="file-label">이미지 선택<input type="file" id="cmp-file" accept="image/*" hidden /></label>
-          <label>저장 형식
-            <select id="cmp-format">
-              <option value="image/jpeg">JPG</option>
-              <option value="image/webp">WEBP</option>
-            </select>
-          </label>
-          <label>목표 용량(KB, 비우면 화질 우선)
-            <input type="number" id="cmp-target" min="10" step="50" placeholder="예: 300" />
-          </label>
-          <button class="btn primary" id="cmp-run" disabled>압축하기</button>
-        </div>
-        <div class="status" id="cmp-status">이미지를 선택하거나 끌어다 놓으세요.</div>
-        <div class="dropzone compress-drop" id="cmp-drop">
-          <div class="drop-hint" id="cmp-hint"><div class="drop-icon">⬆️</div><p>여기로 이미지를 끌어다 놓으세요</p></div>
-          <img id="cmp-preview" class="hidden" alt="미리보기" />
-        </div>
-        <div id="cmp-result" class="compare-box hidden"></div>
-      </div>
-      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
-    </section>
-
     <!-- ============ QR 코드 ============ -->
     <section class="tab" id="tab-qr">
       <h2 class="tab-title">📱 QR 코드 생성</h2>
@@ -471,49 +467,6 @@
         </div>
         <div class="status" id="qr-status"></div>
         <div class="qr-stage"><canvas id="qr-canvas"></canvas></div>
-      </div>
-      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
-    </section>
-
-    <!-- ============ 워터마크 ============ -->
-    <section class="tab" id="tab-watermark">
-      <h2 class="tab-title">💧 이미지 워터마크</h2>
-      <p class="tab-desc">사진에 텍스트나 로고 워터마크를 넣습니다. 처리는 브라우저 안에서만 이뤄집니다.</p>
-      <div class="panel">
-        <div class="panel-row controls">
-          <label class="file-label">사진 선택<input type="file" id="wm-file" accept="image/*" hidden /></label>
-          <label>종류
-            <select id="wm-type">
-              <option value="text">텍스트</option>
-              <option value="logo">로고 이미지</option>
-            </select>
-          </label>
-          <label id="wm-logo-wrap" style="display:none;" class="file-label">로고 선택<input type="file" id="wm-logo" accept="image/*" hidden /></label>
-        </div>
-        <div class="panel-row controls" id="wm-text-controls">
-          <label>문구 <input type="text" id="wm-text" value="© I Hate To Work" /></label>
-          <label>색상 <input type="color" id="wm-color" value="#ffffff" /></label>
-        </div>
-        <div class="panel-row controls">
-          <label>위치
-            <select id="wm-pos">
-              <option value="br">우하단</option>
-              <option value="bl">좌하단</option>
-              <option value="tr">우상단</option>
-              <option value="tl">좌상단</option>
-              <option value="center">가운데</option>
-              <option value="tile">바둑판(반복)</option>
-            </select>
-          </label>
-          <label>크기 (<span id="wm-size-val">8</span>%)<input type="range" id="wm-size" min="2" max="30" value="8" /></label>
-          <label>투명도 (<span id="wm-opacity-val">50</span>%)<input type="range" id="wm-opacity" min="5" max="100" value="50" /></label>
-          <button class="btn primary" id="wm-save" disabled>워터마크 저장</button>
-        </div>
-        <div class="status" id="wm-status">사진을 선택하거나 끌어다 놓으세요.</div>
-        <div class="dropzone wm-drop" id="wm-drop">
-          <div class="drop-hint" id="wm-hint"><div class="drop-icon">⬆️</div><p>여기로 사진을 끌어다 놓으세요</p></div>
-          <canvas id="wm-canvas" class="hidden"></canvas>
-        </div>
       </div>
       <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
     </section>
@@ -726,6 +679,54 @@
           </div>
           <p class="saju-note">※ 재미로 보는 가벼운 풀이입니다. 년주·월주는 절기(입춘 등) 기준이라, 생일이 절기 경계(매월 초·입춘 무렵)면 하루 차이로 달라질 수 있어요. 음력 생일이면 양력으로 바꿔 입력하세요.</p>
         </div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 연봉 실수령 계산기 ============ -->
+    <section class="tab" id="tab-salary">
+      <h2 class="tab-title">💰 연봉 실수령액 계산기</h2>
+      <p class="tab-desc">연봉을 넣으면 4대보험·소득세를 공제한 월 실수령액을 계산합니다. (2024년 기준 근사치 — 부양가족·비과세에 따라 실제와 차이날 수 있어요)</p>
+      <div class="panel">
+        <div class="panel-row controls">
+          <label>연봉(만원) <input type="number" id="sal-year" value="3600" min="0" step="100" /></label>
+          <label>비과세(월, 원) <input type="number" id="sal-non" value="200000" min="0" step="10000" /></label>
+          <label>부양가족 수(본인 포함) <input type="number" id="sal-family" value="1" min="1" /></label>
+          <label>20세 이하 자녀 <input type="number" id="sal-child" value="0" min="0" /></label>
+          <button class="btn primary" id="sal-run">계산</button>
+        </div>
+        <div class="status" id="sal-status"></div>
+        <div class="table-wrap"><table id="sal-table" class="data-table hidden"><thead><tr><th>항목</th><th class="num">월</th><th class="num">연</th></tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
+    </section>
+
+    <!-- ============ 부가세 · 할인 계산기 ============ -->
+    <section class="tab" id="tab-vat">
+      <h2 class="tab-title">🧾 부가세 · 할인 계산기</h2>
+      <p class="tab-desc">부가가치세(10%)와 할인가를 빠르게 계산합니다.</p>
+      <div class="panel">
+        <h3 class="sub-title">부가세 계산</h3>
+        <div class="panel-row controls">
+          <label>금액 <input type="number" id="vat-amount" value="100000" min="0" step="1000" /></label>
+          <label>기준
+            <select id="vat-mode">
+              <option value="add">공급가 → 부가세 더하기</option>
+              <option value="extract">합계가 → 부가세 분리</option>
+            </select>
+          </label>
+          <button class="btn primary" id="vat-run">계산</button>
+        </div>
+        <div class="status" id="vat-result"></div>
+      </div>
+      <div class="panel" style="margin-top:18px;">
+        <h3 class="sub-title">할인 계산</h3>
+        <div class="panel-row controls">
+          <label>정가 <input type="number" id="disc-price" value="50000" min="0" step="1000" /></label>
+          <label>할인율(%) <input type="number" id="disc-rate" value="20" min="0" max="100" /></label>
+          <button class="btn primary" id="disc-run">계산</button>
+        </div>
+        <div class="status" id="disc-result"></div>
       </div>
       <div class="home-row"><button class="btn home-btn" data-tab="home">🏠 홈으로</button></div>
     </section>

@@ -267,6 +267,9 @@ const qualityVal = document.getElementById('img-quality-val');
 let img = new Image();
 let imgLoaded = false;
 let crop = null; // 표시 좌표 기준 {x,y,w,h}
+let originalSrc = null; // '처음으로'용 원본
+let markOriginal = false;
+let wm2Logo = null; // 워터마크 로고 이미지
 
 document.querySelector('.file-label').addEventListener('click', () => imgFile.click());
 imgFile.addEventListener('change', (e) => {
@@ -300,9 +303,10 @@ function loadImageFile(file) {
   const url = URL.createObjectURL(file);
   cropHistory = [];
   imageHistory = [];
+  markOriginal = true;
   setImageSrc(
     url,
-    `불러옴: 드래그해 영역 선택 후 Enter=선택만 남기기 · ESC=취소 · Ctrl+Z=되돌리기`,
+    `불러옴: 드래그해 영역 선택 후 자르기/모자이크, 아래에서 리사이즈·워터마크. (Ctrl+Z=되돌리기)`,
     () => URL.revokeObjectURL(url)
   );
 }
@@ -322,11 +326,14 @@ function setImageSrc(src, statusMsg, after) {
     imgStage.classList.add('has-image');
     wInput.value = img.naturalWidth;
     hInput.value = img.naturalHeight;
-    document.getElementById('img-resize-controls').style.display = 'flex';
-    document.getElementById('img-actions').style.display = 'flex';
+    document.getElementById('img-tools').style.display = 'block';
+    document.getElementById('img-save').disabled = false;
+    document.getElementById('img-undo').disabled = false;
     document.getElementById('img-reset').disabled = false;
-    document.getElementById('img-crop').disabled = true;
     document.getElementById('img-apply').disabled = true;
+    document.getElementById('img-mosaic').disabled = true;
+    document.getElementById('img-deselect').disabled = true;
+    if (markOriginal) { originalSrc = canvas.toDataURL('image/png'); markOriginal = false; }
     const dim = `${img.naturalWidth} × ${img.naturalHeight}px`;
     setStatus(imgStatus, statusMsg ? `${dim} — ${statusMsg}` : dim, 'ok');
   };
@@ -389,8 +396,9 @@ window.addEventListener('mousemove', (e) => {
 
 window.addEventListener('mouseup', () => {
   if (dragging && crop && crop.w > 5 && crop.h > 5) {
-    document.getElementById('img-crop').disabled = false;
     document.getElementById('img-apply').disabled = false;
+    document.getElementById('img-mosaic').disabled = false;
+    document.getElementById('img-deselect').disabled = false;
   }
   dragging = false;
   resizing = false;
@@ -412,34 +420,127 @@ function updateCropBox() {
   cropBox.classList.remove('hidden');
 }
 
-// ----- 저장 동작 -----
-// 자른 영역 저장
-document.getElementById('img-crop').addEventListener('click', () => {
-  if (!crop || crop.w < 5) return;
-  const rect = canvas.getBoundingClientRect();
-  const s = canvas.width / rect.width; // 원본/표시 비율
-  const sx = crop.x * s, sy = crop.y * s, sw = crop.w * s, sh = crop.h * s;
-  const out = document.createElement('canvas');
-  out.width = Math.round(sw);
-  out.height = Math.round(sh);
-  out.getContext('2d').drawImage(canvas, sx, sy, sw, sh, 0, 0, out.width, out.height);
-  saveCanvas(out, '재단');
-});
+// ----- 편집 적용(작업 캔버스에 누적) -----
+// 현재 canvas를 히스토리에 넣고, 새 결과를 작업 이미지로 반영
+function commit(outCanvas, msg) {
+  imageHistory.push(canvas.toDataURL('image/png'));
+  if (imageHistory.length > 20) imageHistory.shift();
+  cropHistory = [];
+  setImageSrc(outCanvas.toDataURL('image/png'), msg);
+}
 
-// 리사이즈 저장
-document.getElementById('img-resize-save').addEventListener('click', () => {
+// 선택 영역(표시좌표)을 원본좌표로 변환
+function cropToSource() {
+  const rect = canvas.getBoundingClientRect();
+  const s = canvas.width / rect.width;
+  return { sx: crop.x * s, sy: crop.y * s, sw: crop.w * s, sh: crop.h * s };
+}
+
+// 리사이즈 적용
+document.getElementById('img-resize-apply').addEventListener('click', () => {
   const w = parseInt(wInput.value, 10);
   const h = parseInt(hInput.value, 10);
   if (!w || !h) return setStatus(imgStatus, '가로/세로 값을 확인해주세요.', 'error');
   const out = document.createElement('canvas');
-  out.width = w;
-  out.height = h;
+  out.width = w; out.height = h;
   const c = out.getContext('2d');
   c.imageSmoothingEnabled = true;
   c.imageSmoothingQuality = 'high';
-  c.drawImage(img, 0, 0, w, h);
-  saveCanvas(out, '리사이즈');
+  c.drawImage(canvas, 0, 0, w, h);
+  commit(out, `${w}×${h}로 리사이즈했어요.`);
 });
+
+// 모자이크 적용 (선택 영역)
+document.getElementById('img-mosaic-size').addEventListener('input', (e) =>
+  (document.getElementById('img-mosaic-val').textContent = e.target.value));
+document.getElementById('img-mosaic').addEventListener('click', () => {
+  if (!crop || crop.w < 5 || crop.h < 5) return setStatus(imgStatus, '먼저 가릴 영역을 드래그하세요.', 'error');
+  const { sx, sy, sw, sh } = cropToSource();
+  const block = parseInt(document.getElementById('img-mosaic-size').value, 10);
+  const out = document.createElement('canvas');
+  out.width = canvas.width; out.height = canvas.height;
+  const c = out.getContext('2d');
+  c.drawImage(canvas, 0, 0);
+  const tw = Math.max(1, Math.round(sw / block)), th = Math.max(1, Math.round(sh / block));
+  const tmp = document.createElement('canvas');
+  tmp.width = tw; tmp.height = th;
+  const tc = tmp.getContext('2d');
+  tc.imageSmoothingEnabled = false;
+  tc.drawImage(canvas, sx, sy, sw, sh, 0, 0, tw, th);
+  c.imageSmoothingEnabled = false;
+  c.drawImage(tmp, 0, 0, tw, th, sx, sy, sw, sh);
+  commit(out, '선택 영역을 모자이크 처리했어요.');
+});
+
+// 워터마크 컨트롤
+const wm2Type = document.getElementById('wm2-type');
+wm2Type.addEventListener('change', () => {
+  const isLogo = wm2Type.value === 'logo';
+  document.getElementById('wm2-logo-wrap').style.display = isLogo ? 'inline-flex' : 'none';
+  document.getElementById('wm2-text-wrap').style.display = isLogo ? 'none' : 'flex';
+  document.getElementById('wm2-color-wrap').style.display = isLogo ? 'none' : 'flex';
+});
+document.getElementById('wm2-logo').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const u = URL.createObjectURL(f);
+  wm2Logo = new Image();
+  wm2Logo.onload = () => URL.revokeObjectURL(u);
+  wm2Logo.src = u;
+});
+document.getElementById('wm2-size').addEventListener('input', (e) =>
+  (document.getElementById('wm2-size-val').textContent = e.target.value));
+document.getElementById('wm2-op').addEventListener('input', (e) =>
+  (document.getElementById('wm2-op-val').textContent = e.target.value));
+
+document.getElementById('wm2-apply').addEventListener('click', () => {
+  if (!imgLoaded) return;
+  const w = canvas.width, h = canvas.height;
+  const out = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const c = out.getContext('2d');
+  c.drawImage(canvas, 0, 0);
+  const pos = document.getElementById('wm2-pos').value;
+  const sizePct = parseInt(document.getElementById('wm2-size').value, 10) / 100;
+  const opacity = parseInt(document.getElementById('wm2-op').value, 10) / 100;
+  const pad = Math.round(Math.min(w, h) * 0.03);
+  c.globalAlpha = opacity;
+
+  const place = (mw, mh) => {
+    const map = {
+      tl: [pad, pad], tr: [w - mw - pad, pad], bl: [pad, h - mh - pad],
+      br: [w - mw - pad, h - mh - pad], center: [(w - mw) / 2, (h - mh) / 2],
+    };
+    return map[pos] || map.br;
+  };
+  const tile = (sx2, sy2, draw) => { for (let y = 0; y < h; y += sy2) for (let x = 0; x < w; x += sx2) draw(x, y); };
+
+  if (wm2Type.value === 'logo' && wm2Logo) {
+    const lw = w * sizePct * 2;
+    const lh = lw * (wm2Logo.naturalHeight / wm2Logo.naturalWidth);
+    if (pos === 'tile') tile(lw * 1.6, lh * 1.6, (x, y) => c.drawImage(wm2Logo, x, y, lw, lh));
+    else { const [x, y] = place(lw, lh); c.drawImage(wm2Logo, x, y, lw, lh); }
+  } else if (wm2Type.value === 'logo') {
+    c.globalAlpha = 1;
+    return setStatus(imgStatus, '로고 이미지를 먼저 선택하세요.', 'error');
+  } else {
+    const text = document.getElementById('wm2-text').value || '';
+    const fs = Math.max(10, Math.round(w * sizePct));
+    c.font = `700 ${fs}px 'Noto Sans KR', sans-serif`;
+    c.fillStyle = document.getElementById('wm2-color').value;
+    c.textBaseline = 'top';
+    const mw = c.measureText(text).width;
+    if (pos === 'tile') tile(mw + fs, fs * 2, (x, y) => c.fillText(text, x, y));
+    else { const [x, y] = place(mw, fs); c.fillText(text, x, y); }
+  }
+  c.globalAlpha = 1;
+  commit(out, '워터마크를 넣었어요.');
+});
+
+// 저장(내보내기) / 처음으로 / 선택 해제
+document.getElementById('img-save').addEventListener('click', () => saveCanvas(canvas, '편집'));
+document.getElementById('img-deselect').addEventListener('click', () => clearSelection('선택을 해제했어요.'));
+document.getElementById('img-undo').addEventListener('click', undo);
 
 // 캔버스를 선택한 형식/품질로 저장
 function saveCanvas(sourceCanvas, baseName) {
@@ -488,14 +589,18 @@ hInput.addEventListener('input', () => {
 function clearSelection(msg) {
   crop = null;
   cropBox.classList.add('hidden');
-  document.getElementById('img-crop').disabled = true;
   document.getElementById('img-apply').disabled = true;
+  document.getElementById('img-mosaic').disabled = true;
+  document.getElementById('img-deselect').disabled = true;
   if (msg) setStatus(imgStatus, msg, '');
 }
 
+// '처음으로' = 원본 이미지로 되돌리기
 document.getElementById('img-reset').addEventListener('click', () => {
+  if (!originalSrc) return;
   cropHistory = [];
-  clearSelection('선택 영역을 초기화했습니다.');
+  imageHistory = [];
+  setImageSrc(originalSrc, '처음 상태로 되돌렸어요.');
 });
 
 /* ----- 선택 영역만 남기기 (Enter / 버튼) -----
@@ -546,8 +651,9 @@ function undo() {
     if (cropHistory.length > 0) {
       crop = cropHistory.pop();
       updateCropBox();
-      document.getElementById('img-crop').disabled = false;
       document.getElementById('img-apply').disabled = false;
+      document.getElementById('img-mosaic').disabled = false;
+      document.getElementById('img-deselect').disabled = false;
       setStatus(imgStatus, `이전 선택으로 되돌렸습니다. (남은 단계: ${cropHistory.length})`, '');
     } else {
       clearSelection('선택을 해제했습니다.');
@@ -556,7 +662,7 @@ function undo() {
   }
   // 3) 선택이 없으면 마지막으로 잘라낸 이미지를 복원
   if (imageHistory.length > 0) {
-    setImageSrc(imageHistory.pop(), `잘라내기를 되돌렸습니다. (남은 단계: ${imageHistory.length})`);
+    setImageSrc(imageHistory.pop(), `한 단계 되돌렸습니다. (남은 단계: ${imageHistory.length})`);
   } else {
     setStatus(imgStatus, '더 되돌릴 작업이 없습니다.', '');
   }

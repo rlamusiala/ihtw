@@ -474,297 +474,6 @@ function makeDropzone(el, onFiles, accept = 'image/') {
 })();
 
 /* =========================================================
-   이미지 형식 변환 (JPG ↔ PNG ↔ WEBP)
-========================================================= */
-(function () {
-  const fileInput = document.getElementById('cv-file');
-  const drop = document.getElementById('cv-drop');
-  const hint = document.getElementById('cv-hint');
-  const preview = document.getElementById('cv-preview');
-  const status = document.getElementById('cv-status');
-  const runBtn = document.getElementById('cv-run');
-  const formatSel = document.getElementById('cv-format');
-  const qWrap = document.getElementById('cv-quality-wrap');
-  const qInput = document.getElementById('cv-quality');
-  let curImg = null;
-  let originalSize = 0;
-  let originalName = 'image';
-
-  drop.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => e.target.files[0] && load(e.target.files[0]));
-  makeDropzone(drop, (files) => load(files[0]));
-
-  function updateQ() {
-    qWrap.style.display = formatSel.value === 'image/png' ? 'none' : 'flex';
-  }
-  formatSel.addEventListener('change', updateQ);
-  qInput.addEventListener('input', () => (document.getElementById('cv-quality-val').textContent = qInput.value));
-  updateQ();
-
-  async function load(file) {
-    originalSize = file.size;
-    originalName = file.name.replace(/\.[^.]+$/, '') || 'image';
-    curImg = await fileToImage(file);
-    preview.src = curImg.src;
-    preview.classList.remove('hidden');
-    hint.classList.add('hidden');
-    drop.classList.add('has-image');
-    runBtn.disabled = false;
-    setStatus(status, `원본: ${curImg.naturalWidth}×${curImg.naturalHeight}, ${fmtSize(originalSize)}`, 'ok');
-  }
-
-  runBtn.addEventListener('click', async () => {
-    if (!curImg) return;
-    const format = formatSel.value;
-    const quality = format === 'image/png' ? undefined : Number(qInput.value) / 100;
-    const ext = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' }[format];
-
-    const canvas = document.createElement('canvas');
-    canvas.width = curImg.naturalWidth;
-    canvas.height = curImg.naturalHeight;
-    const c = canvas.getContext('2d');
-    if (format === 'image/jpeg') { c.fillStyle = '#fff'; c.fillRect(0, 0, canvas.width, canvas.height); }
-    c.drawImage(curImg, 0, 0);
-
-    const blob = await toBlobAsync(canvas, format, quality);
-    if (!blob) return setStatus(status, '변환에 실패했습니다.', 'error');
-    downloadBlob(blob, `${originalName}.${ext}`);
-    setStatus(status, `변환 완료: ${ext.toUpperCase()} · ${fmtSize(blob.size)} (원본 ${fmtSize(originalSize)})`, 'ok');
-  });
-})();
-
-/* =========================================================
-   이미지 용량 줄이기 (압축)
-========================================================= */
-(function () {
-  const fileInput = document.getElementById('cmp-file');
-  const drop = document.getElementById('cmp-drop');
-  const hint = document.getElementById('cmp-hint');
-  const preview = document.getElementById('cmp-preview');
-  const status = document.getElementById('cmp-status');
-  const runBtn = document.getElementById('cmp-run');
-  const resultEl = document.getElementById('cmp-result');
-  let curImg = null;
-  let originalSize = 0;
-
-  drop.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => e.target.files[0] && load(e.target.files[0]));
-  makeDropzone(drop, (files) => load(files[0]));
-
-  async function load(file) {
-    originalSize = file.size;
-    curImg = await fileToImage(file);
-    preview.src = curImg.src;
-    preview.classList.remove('hidden');
-    hint.classList.add('hidden');
-    drop.classList.add('has-image');
-    runBtn.disabled = false;
-    resultEl.classList.add('hidden');
-    setStatus(status, `원본: ${curImg.naturalWidth}×${curImg.naturalHeight}, ${fmtSize(originalSize)}`, 'ok');
-  }
-
-  runBtn.addEventListener('click', async () => {
-    if (!curImg) return;
-    const format = document.getElementById('cmp-format').value;
-    const targetKB = parseInt(document.getElementById('cmp-target').value, 10);
-    setStatus(status, '압축 중...', 'loading');
-
-    const canvas = document.createElement('canvas');
-    canvas.width = curImg.naturalWidth;
-    canvas.height = curImg.naturalHeight;
-    const c = canvas.getContext('2d');
-    if (format === 'image/jpeg') { c.fillStyle = '#fff'; c.fillRect(0, 0, canvas.width, canvas.height); }
-    c.drawImage(curImg, 0, 0);
-
-    let blob;
-    if (targetKB && targetKB > 0) {
-      blob = await compressToTarget(canvas, format, targetKB * 1024);
-    } else {
-      blob = await toBlobAsync(canvas, format, 0.85);
-    }
-
-    const ext = format === 'image/webp' ? 'webp' : 'jpg';
-    const pct = Math.max(0, Math.round((1 - blob.size / originalSize) * 100));
-    resultEl.classList.remove('hidden');
-    resultEl.innerHTML = `
-      <div class="col">원본<br><span class="big">${fmtSize(originalSize)}</span></div>
-      <div class="col">압축 후<br><span class="big">${fmtSize(blob.size)}</span></div>
-      <div class="col">절감<br><span class="big down">${pct}%↓</span></div>`;
-    const btn = document.createElement('button');
-    btn.className = 'btn primary';
-    btn.textContent = '저장';
-    btn.onclick = () => downloadBlob(blob, `압축_${canvas.width}x${canvas.height}.${ext}`);
-    resultEl.appendChild(btn);
-    setStatus(status, '완료', 'ok');
-  });
-
-  async function compressToTarget(canvas, type, targetBytes) {
-    let lo = 0.3, hi = 0.95, best = null;
-    for (let i = 0; i < 8; i++) {
-      const q = (lo + hi) / 2;
-      const blob = await toBlobAsync(canvas, type, q);
-      if (blob.size <= targetBytes) { best = blob; lo = q; } else { hi = q; }
-    }
-    return best || (await toBlobAsync(canvas, type, 0.3));
-  }
-})();
-
-/* =========================================================
-   QR 코드 생성
-========================================================= */
-(function () {
-  const canvas = document.getElementById('qr-canvas');
-  const status = document.getElementById('qr-status');
-  const saveBtn = document.getElementById('qr-save');
-  let logoImg = null;
-
-  document.getElementById('qr-logo').addEventListener('change', async (e) => {
-    logoImg = e.target.files[0] ? await fileToImage(e.target.files[0]) : null;
-  });
-
-  document.getElementById('qr-run').addEventListener('click', () => {
-    const text = document.getElementById('qr-text').value.trim();
-    if (!text) return setStatus(status, '내용을 입력해주세요.', 'error');
-    if (typeof qrcode === 'undefined') return setStatus(status, 'QR 라이브러리를 불러오지 못했습니다(인터넷 연결 확인).', 'error');
-
-    const size = Math.min(1024, Math.max(120, parseInt(document.getElementById('qr-size').value, 10) || 320));
-    const fg = document.getElementById('qr-fg').value;
-    const bg = document.getElementById('qr-bg').value;
-
-    const qr = qrcode(0, 'M');
-    qr.addData(text);
-    qr.make();
-    const count = qr.getModuleCount();
-    const margin = 4;
-    const total = count + margin * 2;
-    const cell = Math.floor(size / total);
-    const dim = cell * total;
-    canvas.width = dim;
-    canvas.height = dim;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, dim, dim);
-    ctx.fillStyle = fg;
-    for (let r = 0; r < count; r++) {
-      for (let col = 0; col < count; col++) {
-        if (qr.isDark(r, col)) {
-          ctx.fillRect((col + margin) * cell, (r + margin) * cell, cell, cell);
-        }
-      }
-    }
-    if (logoImg) {
-      const lw = dim * 0.22;
-      const x = (dim - lw) / 2;
-      ctx.fillStyle = bg;
-      ctx.fillRect(x - 6, x - 6, lw + 12, lw + 12);
-      ctx.drawImage(logoImg, x, x, lw, lw);
-    }
-    saveBtn.disabled = false;
-    setStatus(status, '생성 완료', 'ok');
-  });
-
-  saveBtn.addEventListener('click', () =>
-    canvas.toBlob((b) => downloadBlob(b, 'qr.png'), 'image/png'));
-})();
-
-/* =========================================================
-   이미지 워터마크
-========================================================= */
-(function () {
-  const fileInput = document.getElementById('wm-file');
-  const drop = document.getElementById('wm-drop');
-  const hint = document.getElementById('wm-hint');
-  const canvas = document.getElementById('wm-canvas');
-  const status = document.getElementById('wm-status');
-  const saveBtn = document.getElementById('wm-save');
-  const typeSel = document.getElementById('wm-type');
-  let baseImg = null;
-  let logoImg = null;
-
-  drop.addEventListener('click', (e) => { if (e.target === drop || e.target.closest('.drop-hint')) fileInput.click(); });
-  fileInput.addEventListener('change', (e) => e.target.files[0] && loadBase(e.target.files[0]));
-  makeDropzone(drop, (files) => loadBase(files[0]));
-  document.getElementById('wm-logo').addEventListener('change', async (e) => {
-    logoImg = e.target.files[0] ? await fileToImage(e.target.files[0]) : null;
-    render();
-  });
-
-  typeSel.addEventListener('change', () => {
-    const isLogo = typeSel.value === 'logo';
-    document.getElementById('wm-logo-wrap').style.display = isLogo ? 'flex' : 'none';
-    document.getElementById('wm-text-controls').style.display = isLogo ? 'none' : 'flex';
-    render();
-  });
-
-  ['wm-text', 'wm-color', 'wm-pos'].forEach((id) =>
-    document.getElementById(id).addEventListener('input', render));
-  ['wm-size', 'wm-opacity'].forEach((id) =>
-    document.getElementById(id).addEventListener('input', (e) => {
-      document.getElementById(id + '-val').textContent = e.target.value;
-      render();
-    }));
-
-  async function loadBase(file) {
-    baseImg = await fileToImage(file);
-    canvas.classList.remove('hidden');
-    hint.classList.add('hidden');
-    drop.classList.add('has-image');
-    saveBtn.disabled = false;
-    render();
-    setStatus(status, `${baseImg.naturalWidth}×${baseImg.naturalHeight} — 옵션을 조절하세요.`, 'ok');
-  }
-
-  function placeXY(pos, w, h, mw, mh, pad) {
-    const map = {
-      tl: [pad, pad], tr: [w - mw - pad, pad],
-      bl: [pad, h - mh - pad], br: [w - mw - pad, h - mh - pad],
-      center: [(w - mw) / 2, (h - mh) / 2],
-    };
-    return map[pos] || map.br;
-  }
-
-  function render() {
-    if (!baseImg) return;
-    const w = baseImg.naturalWidth, h = baseImg.naturalHeight;
-    canvas.width = w; canvas.height = h;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(baseImg, 0, 0);
-    const pos = document.getElementById('wm-pos').value;
-    const sizePct = parseInt(document.getElementById('wm-size').value, 10) / 100;
-    const opacity = parseInt(document.getElementById('wm-opacity').value, 10) / 100;
-    const pad = Math.round(Math.min(w, h) * 0.03);
-    ctx.globalAlpha = opacity;
-
-    if (typeSel.value === 'logo' && logoImg) {
-      const lw = w * sizePct * 2;
-      const lh = lw * (logoImg.naturalHeight / logoImg.naturalWidth);
-      if (pos === 'tile') tile(ctx, w, h, lw * 1.6, lh * 1.6, (x, y) => ctx.drawImage(logoImg, x, y, lw, lh));
-      else { const [x, y] = placeXY(pos, w, h, lw, lh, pad); ctx.drawImage(logoImg, x, y, lw, lh); }
-    } else {
-      const text = document.getElementById('wm-text').value || '';
-      const fontSize = Math.max(10, Math.round(w * sizePct));
-      ctx.font = `700 ${fontSize}px 'Noto Sans KR', sans-serif`;
-      ctx.fillStyle = document.getElementById('wm-color').value;
-      ctx.textBaseline = 'top';
-      const mw = ctx.measureText(text).width;
-      const mh = fontSize;
-      if (pos === 'tile') tile(ctx, w, h, mw + fontSize, mh + fontSize, (x, y) => ctx.fillText(text, x, y));
-      else { const [x, y] = placeXY(pos, w, h, mw, mh, pad); ctx.fillText(text, x, y); }
-    }
-    ctx.globalAlpha = 1;
-  }
-
-  function tile(ctx, w, h, stepX, stepY, draw) {
-    for (let y = 0; y < h; y += stepY) for (let x = 0; x < w; x += stepX) draw(x, y);
-  }
-
-  saveBtn.addEventListener('click', () => {
-    if (!baseImg) return;
-    canvas.toBlob((b) => downloadBlob(b, `워터마크_${canvas.width}x${canvas.height}.png`), 'image/png');
-  });
-})();
-
-/* =========================================================
    여러 이미지 일괄 변환 / 리사이즈
 ========================================================= */
 (function () {
@@ -1100,5 +809,178 @@ function makeDropzone(el, onFiles, accept = 'image/') {
     const bytes = await out.save();
     downloadBlob(new Blob([bytes], { type: 'application/pdf' }), `합친PDF_${mFiles.length}개.pdf`);
     setStatus(mStatus, `완료 — ${mFiles.length}개 / 총 ${pages}페이지 합침`, 'ok');
+  });
+})();
+
+/* =========================================================
+   이미지 합치기 (세로/가로로 잇기)
+========================================================= */
+(function () {
+  const fileInput = document.getElementById('join-file');
+  const drop = document.getElementById('join-drop');
+  const status = document.getElementById('join-status');
+  const listEl = document.getElementById('join-list');
+  const runBtn = document.getElementById('join-run');
+  let files = [];
+
+  drop.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => addFiles([...e.target.files]));
+  makeDropzone(drop, (fs) => addFiles(fs), 'image/');
+
+  function addFiles(fs) {
+    files = fs.filter((f) => f.type.startsWith('image/'));
+    listEl.innerHTML = files.map((f, i) => `<li><span>${i + 1}. ${escapeHtml(f.name)}</span></li>`).join('');
+    runBtn.disabled = files.length < 2;
+    setStatus(status, files.length < 2 ? '2장 이상 선택하세요.' : `${files.length}장 선택됨`, files.length < 2 ? '' : 'ok');
+  }
+
+  runBtn.addEventListener('click', async () => {
+    if (files.length < 2) return;
+    const dir = document.getElementById('join-dir').value;
+    const fit = document.getElementById('join-fit').value;
+    const gap = parseInt(document.getElementById('join-gap').value, 10) || 0;
+    const bg = document.getElementById('join-bg').value;
+    setStatus(status, '합치는 중...', 'loading');
+
+    const imgs = [];
+    for (const f of files) imgs.push(await fileToImage(f));
+
+    let cw, ch, scaled;
+    if (dir === 'v') {
+      const ws = imgs.map((i) => i.naturalWidth);
+      const target = fit === 'max' ? Math.max(...ws) : Math.min(...ws);
+      scaled = imgs.map((i) => ({ w: target, h: Math.round(i.naturalHeight * target / i.naturalWidth) }));
+      cw = target;
+      ch = scaled.reduce((a, s) => a + s.h, 0) + gap * (imgs.length - 1);
+    } else {
+      const hs = imgs.map((i) => i.naturalHeight);
+      const target = fit === 'max' ? Math.max(...hs) : Math.min(...hs);
+      scaled = imgs.map((i) => ({ h: target, w: Math.round(i.naturalWidth * target / i.naturalHeight) }));
+      ch = target;
+      cw = scaled.reduce((a, s) => a + s.w, 0) + gap * (imgs.length - 1);
+    }
+
+    const cv = document.createElement('canvas');
+    cv.width = cw; cv.height = ch;
+    const c = cv.getContext('2d');
+    c.fillStyle = bg; c.fillRect(0, 0, cw, ch);
+    c.imageSmoothingQuality = 'high';
+    let off = 0;
+    scaled.forEach((s, i) => {
+      if (dir === 'v') { c.drawImage(imgs[i], 0, off, s.w, s.h); off += s.h + gap; }
+      else { c.drawImage(imgs[i], off, 0, s.w, s.h); off += s.w + gap; }
+    });
+    cv.toBlob((b) => {
+      downloadBlob(b, `합친이미지_${cw}x${ch}.png`);
+      setStatus(status, `완료 — ${cw}×${ch} 저장`, 'ok');
+    }, 'image/png');
+  });
+})();
+
+/* =========================================================
+   연봉 실수령액 계산기 (2024 근사)
+========================================================= */
+(function () {
+  const won = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+
+  function earnedDeduction(gross) {
+    if (gross <= 5e6) return gross * 0.7;
+    if (gross <= 15e6) return 3.5e6 + (gross - 5e6) * 0.4;
+    if (gross <= 45e6) return 7.5e6 + (gross - 15e6) * 0.15;
+    if (gross <= 1e8) return 12e6 + (gross - 45e6) * 0.05;
+    return 14.75e6 + (gross - 1e8) * 0.02;
+  }
+  function incomeTax(base) {
+    const t = [
+      [14e6, 0.06, 0], [50e6, 0.15, 1.26e6], [88e6, 0.24, 5.76e6],
+      [150e6, 0.35, 15.44e6], [300e6, 0.38, 19.94e6], [500e6, 0.4, 25.94e6],
+      [1e9, 0.42, 35.94e6], [Infinity, 0.45, 65.94e6],
+    ];
+    if (base <= 0) return 0;
+    for (const [cap, rate, ded] of t) if (base <= cap) return base * rate - ded;
+    return 0;
+  }
+  function childCredit(n) {
+    if (n <= 0) return 0;
+    if (n === 1) return 15e4;
+    if (n === 2) return 35e4;
+    return 35e4 + (n - 2) * 30e4;
+  }
+
+  document.getElementById('sal-run').addEventListener('click', () => {
+    const yearMan = parseFloat(document.getElementById('sal-year').value) || 0;
+    const nonMonthly = parseFloat(document.getElementById('sal-non').value) || 0;
+    const family = Math.max(1, parseInt(document.getElementById('sal-family').value, 10) || 1);
+    const children = Math.max(0, parseInt(document.getElementById('sal-child').value, 10) || 0);
+    const status = document.getElementById('sal-status');
+    if (yearMan <= 0) return setStatus(status, '연봉을 입력해주세요.', 'error');
+
+    const annual = yearMan * 10000;
+    const taxableAnnual = Math.max(0, annual - nonMonthly * 12);
+    const monTax = taxableAnnual / 12;
+
+    const np = Math.min(monTax, 5900000) * 0.045;
+    const health = monTax * 0.03545;
+    const care = health * 0.1295;
+    const emp = monTax * 0.009;
+    const insMonthly = np + health + care + emp;
+
+    const earnedIncome = taxableAnnual - earnedDeduction(taxableAnnual);
+    const personal = 1500000 * family;
+    const base = Math.max(0, earnedIncome - personal - insMonthly * 12);
+    const calc = incomeTax(base);
+    let wc = calc <= 1300000 ? calc * 0.55 : 715000 + (calc - 1300000) * 0.3;
+    wc = Math.min(wc, taxableAnnual <= 33000000 ? 740000 : 660000);
+    const decided = Math.max(0, calc - wc - childCredit(children));
+    const incomeTaxMonthly = decided / 12;
+    const localTaxMonthly = incomeTaxMonthly * 0.1;
+
+    const grossMonthly = annual / 12;
+    const totalDeduct = insMonthly + incomeTaxMonthly + localTaxMonthly;
+    const net = grossMonthly - totalDeduct;
+
+    const rows = [
+      ['월 급여(세전)', grossMonthly],
+      ['국민연금', -np], ['건강보험', -health], ['장기요양', -care], ['고용보험', -emp],
+      ['소득세', -incomeTaxMonthly], ['지방소득세', -localTaxMonthly],
+      ['공제 합계', -totalDeduct],
+      ['실수령액(월)', net],
+    ];
+    document.querySelector('#sal-table tbody').innerHTML = rows.map(([label, v]) => {
+      const hi = label.includes('실수령') ? ' style="background:var(--brand-soft);font-weight:700"' : '';
+      return `<tr${hi}><td>${label}</td><td class="num">${won(v)}</td><td class="num">${won(v * 12)}</td></tr>`;
+    }).join('');
+    document.getElementById('sal-table').classList.remove('hidden');
+    setStatus(status, `월 실수령 약 ${won(net)} (연 ${won(net * 12)})`, 'ok');
+  });
+})();
+
+/* =========================================================
+   부가세 · 할인 계산기
+========================================================= */
+(function () {
+  const won = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
+
+  document.getElementById('vat-run').addEventListener('click', () => {
+    const amt = parseFloat(document.getElementById('vat-amount').value) || 0;
+    const mode = document.getElementById('vat-mode').value;
+    const el = document.getElementById('vat-result');
+    if (amt <= 0) return setStatus(el, '금액을 입력해주세요.', 'error');
+    if (mode === 'add') {
+      const vat = amt * 0.1;
+      setStatus(el, `공급가 ${won(amt)} + 부가세 ${won(vat)} = 합계 ${won(amt + vat)}`, 'ok');
+    } else {
+      const supply = amt / 1.1;
+      setStatus(el, `합계 ${won(amt)} → 공급가 ${won(supply)} + 부가세 ${won(amt - supply)}`, 'ok');
+    }
+  });
+
+  document.getElementById('disc-run').addEventListener('click', () => {
+    const price = parseFloat(document.getElementById('disc-price').value) || 0;
+    const rate = parseFloat(document.getElementById('disc-rate').value) || 0;
+    const el = document.getElementById('disc-result');
+    if (price <= 0) return setStatus(el, '정가를 입력해주세요.', 'error');
+    const off = price * rate / 100;
+    setStatus(el, `${rate}% 할인 → 할인액 ${won(off)}, 판매가 ${won(price - off)}`, 'ok');
   });
 })();
