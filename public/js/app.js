@@ -5,12 +5,32 @@
 ========================================================= */
 const tabs = document.querySelectorAll('.tab');
 const navBtns = document.querySelectorAll('.nav-btn');
+const VALID_TABS = [...tabs].map((t) => t.id.replace('tab-', ''));
 
-function showTab(name) {
+// 현재 URL 해시 → 탭 이름 (없거나 잘못되면 home)
+function tabFromHash() {
+  const h = decodeURIComponent(location.hash.replace(/^#/, ''));
+  return VALID_TABS.includes(h) ? h : 'home';
+}
+
+// 화면만 바꾸는 함수
+function renderTab(name) {
   tabs.forEach((t) => t.classList.toggle('active', t.id === `tab-${name}`));
   navBtns.forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// 탭 이동: URL 해시를 바꿔 브라우저 히스토리(뒤로/앞으로)에 기록
+function showTab(name) {
+  if (tabFromHash() === name) renderTab(name); // 이미 같은 곳이면 화면만 갱신
+  else location.hash = name; // 해시 변경 → hashchange가 renderTab 호출
+}
+
+// 브라우저 뒤로/앞으로 가기 또는 직접 해시 변경 시
+window.addEventListener('hashchange', () => renderTab(tabFromHash()));
+
+// 첫 진입(공유 링크/북마크 포함) 시 해당 탭 표시
+renderTab(tabFromHash());
 
 document.querySelectorAll('[data-tab]').forEach((el) => {
   el.addEventListener('click', (e) => {
