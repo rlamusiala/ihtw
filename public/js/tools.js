@@ -99,6 +99,73 @@
     </div>`;
   }
 
+  // 신살 계산: 사주 지지 기반(삼합·일간 규칙)
+  const SAMHAP = [
+    { grp: [8, 0, 4], yeokma: 2, dohwa: 9, hwagae: 4 },   // 신자진
+    { grp: [2, 6, 10], yeokma: 8, dohwa: 3, hwagae: 10 }, // 인오술
+    { grp: [5, 9, 1], yeokma: 11, dohwa: 6, hwagae: 1 },  // 사유축
+    { grp: [11, 3, 7], yeokma: 5, dohwa: 0, hwagae: 7 },  // 해묘미
+  ];
+  // 천을귀인(일간→지지)
+  const CHEONEUL = { 0: [1, 7], 4: [1, 7], 6: [1, 7], 1: [0, 8], 5: [0, 8], 2: [11, 9], 3: [11, 9], 7: [2, 6], 8: [3, 5], 9: [3, 5] };
+  // 양인살(양간→제왕지지)
+  const YANGIN = { 0: 3, 2: 6, 4: 6, 6: 9, 8: 0 };
+  // 괴강 일주 / 백호 간지
+  const GWAEGANG = [[6, 4], [6, 10], [8, 4], [4, 10]]; // 경진 경술 임진 무술
+  const BAEKHO = [[0, 4], [1, 7], [2, 10], [3, 1], [4, 4], [8, 10], [9, 1]]; // 갑진 을미 병술 정축 무진 임술 계축
+
+  const SINSAL_DESC = {
+    역마살: '이동·변화·여행·해외와 인연이 깊어요. 활동적이고 한곳에 머물지 않는 기질.',
+    도화살: '매력과 인기가 있어 사람을 끄는 끼가 있어요. 이성운·예술적 감각과도 연결.',
+    화개살: '예술·학문·종교적 기질. 재주가 많고 혼자만의 시간을 즐기는 면이 있어요.',
+    양인살: '기운이 강하고 추진력·승부욕이 셈. 잘 쓰면 카리스마, 과하면 날카로움.',
+    괴강살: '강하고 카리스마 있는 기질. 리더십과 극단의 기운을 동시에 지님.',
+    백호살: '강렬하고 활동적인 에너지. 예전엔 흉으로 봤지만 현대엔 추진력으로 해석해요.',
+  };
+
+  function renderSinsal(s) {
+    const branches = [s.yJi, s.mJi, s.dJi];
+    if (s.hJi !== null) branches.push(s.hJi);
+    const bset = new Set(branches);
+    const found = []; // {name, good}
+
+    // 역마·도화·화개 (기준: 년지, 일지)
+    let yeokma = false, dohwa = false, hwagae = false;
+    for (const base of [s.yJi, s.dJi]) {
+      const g = SAMHAP.find((x) => x.grp.includes(base));
+      if (g) {
+        if (bset.has(g.yeokma)) yeokma = true;
+        if (bset.has(g.dohwa)) dohwa = true;
+        if (bset.has(g.hwagae)) hwagae = true;
+      }
+    }
+    if (yeokma) found.push({ name: '역마살' });
+    if (dohwa) found.push({ name: '도화살' });
+    if (hwagae) found.push({ name: '화개살' });
+
+    // 천을귀인(길신)
+    if ((CHEONEUL[s.dGan] || []).some((j) => bset.has(j))) found.push({ name: '천을귀인', good: true, desc: '어려울 때 돕는 귀인이 따르는 대표 길신이에요. 위기에 조력자를 만나는 복.' });
+    // 양인살
+    if (YANGIN[s.dGan] !== undefined && bset.has(YANGIN[s.dGan])) found.push({ name: '양인살' });
+    // 괴강살(일주)
+    if (GWAEGANG.some(([g, j]) => g === s.dGan && j === s.dJi)) found.push({ name: '괴강살' });
+    // 백호살(사주 간지 어디든)
+    const pillars = [[s.yGan, s.yJi], [s.mGan, s.mJi], [s.dGan, s.dJi]];
+    if (s.hJi !== null) pillars.push([s.hGan, s.hJi]);
+    if (pillars.some(([g, j]) => BAEKHO.some(([bg, bj]) => bg === g && bj === j))) found.push({ name: '백호살' });
+
+    if (found.length === 0)
+      return '<div class="sinsal-none">두드러지는 신살(살·길신)은 보이지 않아요. 비교적 무난한 구성이에요.</div>';
+
+    return '<div class="sinsal-list">' + found.map((f) => {
+      const desc = f.desc || SINSAL_DESC[f.name] || '';
+      const badge = f.good ? '길신' : '살';
+      return `<div class="sinsal-item${f.good ? ' good' : ''}">
+        <div class="name">${f.name}<span class="badge">${badge}</span></div>
+        <div class="desc">${desc}</div></div>`;
+    }).join('') + '</div>';
+  }
+
   document.getElementById('saju-run').addEventListener('click', () => {
     const dateVal = document.getElementById('saju-date').value;
     const hourVal = document.getElementById('saju-hour').value;
@@ -141,6 +208,9 @@
     if (lacking.length) reading += `<div class="row">상대적으로 <b>${lacking.join('·')}</b> 기운이 부족해, 이 기운을 보완하면 균형에 도움이 됩니다.</div>`;
     if (!strong.length && !lacking.length) reading += `<div class="row">오행이 비교적 고르게 분포해 균형이 좋은 편이에요.</div>`;
     document.getElementById('saju-reading').innerHTML = reading;
+
+    // 신살(神煞)
+    document.getElementById('saju-sinsal').innerHTML = renderSinsal(s);
 
     document.getElementById('saju-result').classList.remove('hidden');
     setStatus(status, '사주팔자를 계산했습니다.', 'ok');
